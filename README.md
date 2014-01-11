@@ -64,5 +64,6 @@ Various
 Utility
 =======
 
-- [seedRandom](https://github.com/davidbau/seedrandom)
-- [Csv to Json](https://github.com/cparker15/csv-to-json/)
+- [seedRandom](https://github.com/davidbau/seedrandom) - plant seed for random
+- [Csv to Json](https://github.com/cparker15/csv-to-json/) - convert Csv to Json
+- [watch](https://github.com/melanke/Watch.JS) - listen attribut of object
