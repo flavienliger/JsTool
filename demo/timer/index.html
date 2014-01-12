@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>timer</title>
+</head>
+<body>
+	<script src="timer.js"></script>
+	<script>
+		/* Manage one timer */
+		/* ---------------- */
+		var time = timer.add(function(){
+			console.log('Annulate');
+		}, 500);
+		
+		time.pause();
+		time.play();
+		time.stop();
+		
+		
+		/* Manage all timer */
+		/* ---------------- */
+
+		timer.add(function(){
+			console.log('First');
+		}, 750);
+		
+		timer.add(function(){
+			console.log('Second');
+		}, 1000);
+		
+		timer.add(function(){
+			console.log('third');
+		}, 2000);
+
+		// pause all timers
+		setTimeout(function(){
+			console.log('Pause');
+			timer.pause();
+		}, 500);
+		
+		// replay all timers
+		setTimeout(function(){
+			console.log('Play');
+			timer.play();
+		}, 1000);
+		
+		// stop and clean timers
+		setTimeout(function(){
+			timer.clear();
+		}, 2500);
+		
+	</script>
+</body>
+</html>
