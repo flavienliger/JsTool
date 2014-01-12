@@ -25,9 +25,12 @@ jQuery
 Animate Css.
 -
 
-- [animate enhanced](https://github.com/benbarnett/jQuery-Animate-Enhanced)
+__[animate enhanced](https://github.com/benbarnett/jQuery-Animate-Enhanced)__
 
-  Trick for transition play, you must save the state data. (pytha function tools)
+- (+) has transition left/top  
+- (-) hasn't scale and rotate  
+
+* Trick for transition play, you must save the state data. (pytha function tools)
   ```Javascript
   $.fn.transitionPlay = function(){
   
@@ -51,19 +54,26 @@ Animate Css.
   	});
   };
   ```
-- [animate css rotate scale](https://github.com/zachstronaut/jquery-animate-css-rotate-scale)
-- [transform 2D](https://github.com/louisremi/jquery.transform.js/)
-- [transit](https://github.com/rstacruz/jquery.transit)
+
+__[animate css rotate scale](https://github.com/zachstronaut/jquery-animate-css-rotate-scale)__
+
+
+__[transform 2D](https://github.com/louisremi/jquery.transform.js/)__
+
+- (+) has all transform  
+- (-) can't use left/top  
+
+__[transit](https://github.com/rstacruz/jquery.transit)__
 
 Various
 -
 
-- [timer knob](https://github.com/aterrien/jQuery-Knob)
+__[timer knob](https://github.com/aterrien/jQuery-Knob)__
 
 
 Utility
 =======
 
-- [seedRandom](https://github.com/davidbau/seedrandom) - plant seed for random
-- [Csv to Json](https://github.com/cparker15/csv-to-json/) - convert Csv to Json
-- [watch](https://github.com/melanke/Watch.JS) - listen attribut of object
+__[seedRandom](https://github.com/davidbau/seedrandom)__ - plant seed for random  
+__[Csv to Json](https://github.com/cparker15/csv-to-json/)__ - convert Csv to Json  
+__[watch](https://github.com/melanke/Watch.JS)__ - listen attribut of object  
