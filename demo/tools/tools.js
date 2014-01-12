@@ -25,7 +25,7 @@ var Range = function(input, output, lim){
 	
 	var   inp = input
 		, out = output
-		, lim = lim||true
+		, lim = lim===false? false:true
 	;
 
 	inp.ampl = Math.abs(inp.max-inp.min)
@@ -81,7 +81,9 @@ var Range = function(input, output, lim){
 		;
 		
 		// set to zero
-		var oZero = Math.abs(oStart-first.min);
+		var oZero = oStart-first.min;
+		if(first.min>0)
+      		oZero *= -1;
 		oZero = oZero/first.ampl;
 		
 		// retransform

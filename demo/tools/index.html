@@ -24,12 +24,22 @@
 		var output = {min: 0, max: 1};
 		var range = new Range(input, output);
 		
+		// convert input to output
 		console.log(range.getOutput(50)); // 0.5
 		console.log(range.getOutput(25)); // 0.75
 		
+		// convert output to input
 		console.log(range.getInput(0.5)); // 50
 		console.log(range.getInput(0.75)); // 25
 		
+		// limit
+		range = new Range(input, output, true); // default
+		console.log(range.getOutput(150)); // 0
+		console.log(range.getOutput(-50)); // 1
+		
+		range = new Range(input, output, false);
+		console.log(range.getOutput(150)); // -0.5
+		console.log(range.getOutput(-50)); // 1.5
 		
 		/* -randomOut- */
 		/* ----------- */
