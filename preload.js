@@ -6,7 +6,7 @@
 		var that = this;
 		
 		this.sRoot = '';
-		this.image = [];
+		this.image = {};
 		
 		this.bError = false;
 		this.iLoad = 0;
@@ -19,7 +19,7 @@
 			that.sRoot = aFolder||'';	
 		};
 		
-		this.load = function(aList){
+		this.load = function(aList, cb){
 			if(aList === undefined)
 				return;
 			
@@ -43,9 +43,18 @@
 			for(key in oImage){
 				oImage[key] = imageLoad(oImage[key]);
 				that.iTotal += 1;
+				that.image[key] = oImage[key];
 			}
-		
-			that.image.push(oImage);
+			
+			if(typeof cb === 'function'){
+				var timer = setInterval(function(){
+					if(that.iLoad==that.iTotal){
+						clearInterval(timer);
+						cb();
+					}
+				}, 500);
+			}
+			
 			return oImage;
 		}; 
 	
