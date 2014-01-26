@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>timer</title>
+</head>
+<body>
+	<script src="preload.js"></script>
+	<script>
+		preloadImage.setRoot('img/');
+		
+		// return image
+		var load = preloadImage.load({
+			james1: 'james_1.jpg',
+			james2: 'james_2.jpg',
+			james3: 'james_3.jpg',
+			james4: 'james_4.jpg',
+			james5: 'james_5.jpg',
+			james6: 'james_6.jpg'
+		});
+		
+		// get error/load/total/complete by default
+		var log = preloadImage.getLoad();
+		if(log.error){
+			console.log('error');	
+		}
+		
+		if(preloadImage.getLoad('complete')){
+			console.log('finish');
+		}
+	</script>
+</body>
+</html>
