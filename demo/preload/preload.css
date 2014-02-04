@@ -1,0 +1,32 @@
+.preload {
+	width: 600px;
+	height: 40px;
+	padding: 5px;
+	border: 2px solid #2299dd;
+	border-radius: 20px;
+	left: 50%;
+	margin-left: -300px;
+	position: absolute;
+	top: 40%;
+	transition: opacity 0.5s linear;
+	opacity: 0;
+}
+
+.preload-bar {
+	height: 40px;
+	width: 0px;
+	background: #2299dd;
+	border-radius: 15px;
+	transition: width 0.5s linear;
+}
+
+.overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: rgba(0,0,0,0.5);
+	width: 100%;
+	height: 100%;
+	transition: opacity 0.5s linear;
+	opacity: 0;
+}
