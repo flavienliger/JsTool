@@ -66,9 +66,12 @@
 			document.body.innerHTML += 
 				'<div class="preload"><div class="preload-bar"></div></div><div class="overlay"></div>';
 			
-			var preload = window.getComputedStyle(document.getElementsByClassName('preload')[0], null);
-			var width = parseInt(preload.getPropertyValue("width"), 10);
-			var padding = parseInt(preload.getPropertyValue("padding-right"), 10);
+			var preload = document.getElementsByClassName('preload')[0];
+			var overlay = document.getElementsByClassName('overlay')[0];
+			
+			var css = window.getComputedStyle(preload, null);
+			var width = parseInt(css.getPropertyValue("width"), 10);
+			var padding = parseInt(css.getPropertyValue("padding-right"), 10);
 			var size = width - padding;
 			
 			var bar = document.getElementsByClassName('preload-bar')[0];
@@ -82,7 +85,10 @@
 				bar.style.width = info.load*nPx+'px';
 				
 				if(info.complete){
-					//document.getElementsByClassName('preload')[0].remove();	
+					setTimeout(function(){
+						preload.remove();
+						overlay.remove();
+					}, 500);
 					clearInterval(interval);
 				}
 			}, 500);
