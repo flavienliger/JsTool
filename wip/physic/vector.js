@@ -81,7 +81,7 @@ var vMath = {
     /*  vector absolute */
     abs: function(v)          { return {x: Math.abs(v.x), y: Math.abs(v.y)}; },
     /* dot product vec_ ? */
-    dot: function(v1,v2)      { return (v1.x*vec_.x+v2.y*vec_.y); },
+    dot: function(v1,v2)      { return (v1.x*v2.x+v2.y*v1.y); },
     /* vector length */
     length: function(v)       { return Math.sqrt(v.dot(v));       },
     /* distance between vectors */

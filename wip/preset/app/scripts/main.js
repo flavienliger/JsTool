@@ -37,36 +37,11 @@ require.config({
 });
 
 require([
-	'libs/utils',
-	'libs/date',
-	'jquery',
-	'libs/jquery.extend',
-	'libs/handlebars.extend',
-	'core/app',
-	'core/view',
-	'core/system',
-	'core/user',
-	'core/header',
-	'core/activity',
-	'core/avatar',
-	'core/debug',
-	'core/module'
+	'libs/tools',
+	'libs/various',
+	'jquery'
 ], function(tpl){
 	'use strict';
-
-	System.init(function(){	
-		User.init(function(){
-			View.setLoadData(System.config);
-			if(User.logged){
-				utils.loadingCenter.show();
-				
-				System.initAfterLogin(function(){
-					utils.loadingCenter.hide();
-				});
-			}
-			else{
-				View.goto('connection', {time: 0});
-			}
-		});
-	});
+	
+	// START
 });

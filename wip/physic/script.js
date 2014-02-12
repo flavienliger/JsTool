@@ -1,6 +1,6 @@
 var AABB = {
-	min: new Vec2(min),
-	max: new Vec2(max)
+	min: new Vec2(),
+	max: new Vec2()
 };
 
 function AABBvsAABB(a, b){
@@ -12,8 +12,7 @@ function AABBvsAABB(a, b){
 
 var Circle = {
 	radius: 0,
-	x: 0,
-	y: 0
+	position: new Vec2()
 };
 
 var CirclevsCircle(a, b){
@@ -22,9 +21,12 @@ var CirclevsCircle(a, b){
 	return r < Math.pow(a.x+b.x, 2)+Math.pow(a.y+b.y, 2);
 }
 
+/*
 V^AB = V^B-V^A
 = relative velocity
 le vecteur est le résultat de la fin moins le début, 
 
 V^AB*n = (V^B-V^A)*n
 n = normal
+
+*/
