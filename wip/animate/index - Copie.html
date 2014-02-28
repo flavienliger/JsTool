@@ -1,0 +1,63 @@
+<html>
+	<head>
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<script src="jquery-animate-css-rotate-scale.js"></script>
+		<script src="jquery-css-transform.js"></script>
+	</head>
+<body>
+	<style>
+		.anim { 
+			position: absolute;
+			margin: 10px;
+			left: 100px;
+			top: 305px;
+			z-index: 100;
+			width: 150px; 
+			height: 150px; 
+			padding: 0.5em; 
+			border: 1px solid black; 
+			/*-webkit-transform: rotate(90deg);*/
+		}
+	</style>
+
+	<div id="0" class="anim">
+  		<p>ANIMATE !</p>
+	</div>
+	
+	<script>
+	(function () {
+		
+		//EVENTS
+		$.events = {
+			click: 'click',
+			mousedown: 'mousedown',
+			mouseup: 'mouseup',
+			mousemove: 'mousemove'
+		};
+		$.touchEvents = {
+			click: 'click',
+			mousedown: 'touchstart',
+			mouseup: 'touchend',
+			mousemove: 'touchmove'
+		};
+
+		var tablet = navigator.userAgent.match(/(iPhone|iPod|iPad|Android)/i);
+		if(tablet){
+			$.events = $.extend($.events, $.touchEvents);
+		}
+
+		$('body').bind($.events.mousemove, function(e){
+			e.preventDefault();
+			return false;
+		});
+	})();
+	</script>
+	
+	<script>
+		$('.anim').css({
+			WebkitTransform: 'rotate(90deg) scale(1.1) translateZ(1px) '
+		});
+		$('.anim').rotate('90deg');
+	</script>
+</body>
+</html>	
