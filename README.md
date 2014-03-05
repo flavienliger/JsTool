@@ -10,11 +10,58 @@ Tools for project Js.
 - timer : manage timer for application (pause/play)
 - tools : multiple tools for faster dev'
 
+Enhanced.js
+======
+
+Fork of __[animate enhanced](https://github.com/benbarnett/jQuery-Animate-Enhanced)__.
+
+	$('.anim').animate({
+		left: 500, 
+		top: 100, 
+		rotate: 90, 	// add rotate
+		opacity: 0.5, 
+		width: 50, 
+		scale:0.5 		// add scale x/y
+	}, 5000, 'linear');
+
+	$('.anim').pause();	// pause - laggy in android
+	$('.anim').play();  // play - resume animation
+	$('.anim').stop();	// partial rework
+
+Matrix.js and Transform.js
+========
+
+Manipulation of Css Transform.
+
+Matrix
+-
+
+	var matrix = new Matrix( '3d' );
+	matrix.rotation( deg, axe );		// rotate matrix
+	matrix.scale( x, y, z );			// scale matrix
+	matrix.translate( x, y, z );		// translate matrix
+	matrix.multiplier( a, b ); 			// multipli a by b
+	matrix.convertTo3d();				// convert matrix 2d to 3d
+	matrix.getCssFormat();				// return matrix to css format
+
+Transform
+-
+	var transform = new Transform( el );
+	transform.convert( css );			// convert css to object
+	transform.getTermUnit( name );		// return term unit
+	transform.getCssFormat( aRound );	// return object to css format
+	transform.set( type, val, add );	// add val to object
+	transform.get();					// return object
+	transform.add( str );				// add css to object
+	transform.translate( x, y, z );		// translate object
+	transform.rotate( x, y, z );		// rotate object
+	transform.scale( x, y );			// scale object
+
 Tools.js
 ========
 Personal function.
 
-- `roundNumber( n, o )` : 1.1484564 => 1.14
+- `roundNumber( n, o )` : 1.1484564 => 1.15
 - `Range( inp, out, lim )` : input [1,0] output [50,100] => input 0.5 = output 75
 - `randomOut( inp, ext, fun )` : input [0,1,2] ext [1] => sort random 0 or 2
 - `resize( o, n )` : resize o by n
@@ -26,7 +73,7 @@ Personal function.
 - `random( min, max )` : random
 - `capFirst( str )` : word => Word
 
-jQuery
+jQuery Library
 ======
 Animate Css.
 -
@@ -82,7 +129,7 @@ Various
 __[timer knob](https://github.com/aterrien/jQuery-Knob)__
 
 
-Utility
+Utility Library
 =======
 
 __[seedRandom](https://github.com/davidbau/seedrandom)__ - plant seed for random  
