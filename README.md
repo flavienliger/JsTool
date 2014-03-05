@@ -3,22 +3,28 @@ JsTool
 
 Tools for project Js.
 
+- drag : rework jQuery draggable, for tablet (android/iOs)
+- enhanced : fork of jQuery enhanced, add pause/play, save transform, add rotate/scale
+- matrix : manipulation of 3d matrix Css
+- preload : easy and light loader image
+- timer : manage timer for application (pause/play)
+- tools : multiple tools for faster dev'
+
 Tools.js
 ========
-Personal tools.
+Personal function.
 
-- roundNumber
-- Range
-- randomOut
-- resize
-- copyTab
-- getCoords
-- getRotationDegrees
-- getAngle
-- pytha
-- colorLuminance
-- random
-- capFirst
+- roundNumber( n, o ) : 1.1484564 => 1.14
+- Range( inp, out, lim ) : input [1,0] output [50,100] => input 0.5 = output 75
+- randomOut( inp, ext, fun ) : input [0,1,2] ext [1] => sort random 0 or 2
+- resize( o, n ) : resize o by n
+- copyTab( tab ) : sort clone of array
+- getCoords( el, event ) : return coord pc/tablet
+- getAngle( start, end ) : return angle
+- pytha( start, end ) : pythagore
+- colorLuminance( hex, lum ) : brightness of hexadecimal
+- random( min, max ) : random
+- capFirst( str ) : word => Word
 
 jQuery
 ======
@@ -28,7 +34,22 @@ Animate Css.
 __[animate enhanced](https://github.com/benbarnett/jQuery-Animate-Enhanced)__
 
 - (+) has transition left/top  
-- (-) hasn't scale and rotate  
+- (-) hasn't scale, rotate and pause
+
+__[animate css rotate scale](https://github.com/zachstronaut/jquery-animate-css-rotate-scale)__
+
+- (+) easy and fast
+- (-) only rotate/scale
+
+__[transform 2D](https://github.com/louisremi/jquery.transform.js/)__
+
+- (+) has all transform  
+- (-) can't use left/top, transformOrigin and pause 
+
+__[transit](https://github.com/rstacruz/jquery.transit)__
+
+- (+) has all transform has stop
+- (-) can't use left/top  
 
 * Trick for transition play, you must save the state data. (pytha function tools)
   ```Javascript
@@ -54,16 +75,6 @@ __[animate enhanced](https://github.com/benbarnett/jQuery-Animate-Enhanced)__
   	});
   };
   ```
-
-__[animate css rotate scale](https://github.com/zachstronaut/jquery-animate-css-rotate-scale)__
-
-
-__[transform 2D](https://github.com/louisremi/jquery.transform.js/)__
-
-- (+) has all transform  
-- (-) can't use left/top  
-
-__[transit](https://github.com/rstacruz/jquery.transit)__
 
 Various
 -

@@ -14,54 +14,42 @@
 			height: 150px; 
 			padding: 0.5em; 
 			border: 1px solid black; 
-			/*-webkit-transform: rotate(90deg);*/
+			-webkit-transform: rotate(-10deg) scale(1.1);
+		}
+		#ab{
+			left: 400px;	
 		}
 	</style>
 
 	<div id="0" class="anim">
   		<p>ANIMATE !</p>
 	</div>
+	<div id="ab" class="anim">
+  		<p>ANIMATE2 !</p>
+	</div>
+
+	<script src="enhancedTransform.js"></script>
+	<script src="transform.js"></script>
 	
 	<script>
-	(function () {
-		
-		//EVENTS
-		$.events = {
-			click: 'click',
-			mousedown: 'mousedown',
-			mouseup: 'mouseup',
-			mousemove: 'mousemove'
-		};
-		$.touchEvents = {
-			click: 'click',
-			mousedown: 'touchstart',
-			mouseup: 'touchend',
-			mousemove: 'touchmove'
-		};
-
-		var tablet = navigator.userAgent.match(/(iPhone|iPod|iPad|Android)/i);
-		if(tablet){
-			$.events = $.extend($.events, $.touchEvents);
-		}
-
-		$('body').bind($.events.mousemove, function(e){
-			e.preventDefault();
-			return false;
+		$('.anim').animate({
+				left: 500, 
+				top: 100, 
+				rotate: 90, 
+				opacity: 0.5, 
+				width: 50, 
+				scale:0.5
+			}, 5000, 'linear', function(){ 
+				$(this).animate({opacity: 0}, 500, 'linear');
 		});
-	})();
-	</script>
-	
-	<script src="jquery.animate-enhanced.js"></script>
-	<script src="matrix.js"></script>
-	<script>
 		
-		//var ori = $('#0').css('WebkitTransform');
-		//var m = new Matrix(ori);
-		
-		$('.anim').css({
-			WebkitTransform: 'rotate(90deg) scale(1.1) translateZ(1px) '
-		});
-		$('.anim').animate({left: 500, top: 100, rotate: 100}, 1000, 'linear');
+		setTimeout(function(){ 
+			$('.anim').pause();
+			
+			setTimeout(function(){		 
+				$('.anim').play();	
+			}, 500);
+		 }, 2500);
 	</script>
 </body>
 </html>	
