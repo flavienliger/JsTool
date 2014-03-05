@@ -14,17 +14,17 @@ Tools.js
 ========
 Personal function.
 
-- roundNumber( n, o ) : 1.1484564 => 1.14
-- Range( inp, out, lim ) : input [1,0] output [50,100] => input 0.5 = output 75
-- randomOut( inp, ext, fun ) : input [0,1,2] ext [1] => sort random 0 or 2
-- resize( o, n ) : resize o by n
-- copyTab( tab ) : sort clone of array
-- getCoords( el, event ) : return coord pc/tablet
-- getAngle( start, end ) : return angle
-- pytha( start, end ) : pythagore
-- colorLuminance( hex, lum ) : brightness of hexadecimal
-- random( min, max ) : random
-- capFirst( str ) : word => Word
+- `roundNumber( n, o )` : 1.1484564 => 1.14
+- `Range( inp, out, lim )` : input [1,0] output [50,100] => input 0.5 = output 75
+- `randomOut( inp, ext, fun )` : input [0,1,2] ext [1] => sort random 0 or 2
+- `resize( o, n )` : resize o by n
+- `copyTab( tab )` : clone of array
+- `getCoords( el, event )` : return coord pc/tablet
+- `getAngle( start, end )` : return angle
+- `pytha( start, end )` : pythagore
+- `colorLuminance( hex, lum )` : brightness of hexadecimal
+- `random( min, max )` : random
+- `capFirst( str )` : word => Word
 
 jQuery
 ======

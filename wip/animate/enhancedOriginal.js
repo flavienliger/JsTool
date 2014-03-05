@@ -25,6 +25,228 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ---
+Extends jQuery.animate() to automatically use CSS3 transformations where applicable.
+Tested with jQuery 1.3.2+
+
+Supports -moz-transition, -webkit-transition, -o-transition, transition
+
+Targetted properties (for now):
+	- left
+	- top
+	- opacity
+	- width
+	- height
+
+Usage (exactly the same as it would be normally):
+
+	jQuery(element).animate({left: 200},  500, function() {
+		// callback
+	});
+
+Changelog:
+	1.08 (16/01/2014):
+		- Merging PR #147 Access element tag name appropriately
+
+	1.07 (06/12/2013):
+		- Merging PR #139 Other units, beside '%' should also be kept
+
+	1.06 (06/12/2013):
+		- Merging PR #140 Do not change a user defined display mode for elements, after show/hide
+
+	1.05 (14/08/2013):
+		- Merging PR #124 fix for highcharts clash. Thanks @bensonc!
+
+	1.04 (14/08/2013):
+		- Using fix from issue #69 by @rickyk586 to support percentages
+
+	1.03 (19/7/2013):
+		- Merge PR #129 (Use originalAnimateMethod if a step callback function is provided.) /thx @lehni
+
+	1.02 (8/5/2013):
+		- Fixing use3D default flags. It must explicitly be set to false to disable 3d now, the plugin by default will use it if available.
+
+	1.01 (8/5/2013):
+		- Adding appropriate display value for wider range of elements (issue #121 - thanks smacky)
+
+	1.0 (8/5/2103):
+		- Fix avoidTransforms: true behaviour for directional transitions
+
+	0.99.1 (3/4/2013):
+		- Add Set or unset the 'disabled by default' value (PR #117)
+
+	0.99 (5/12/2012):
+		- PR #109 Added support for list-item nodes. FadeIn on tags was omitting the list-style support. (thx @SeanCannon)
+		
+	0.98 (12/11/2012):
+		- Merging pull request #106 thx @gboysko - checking for ownerDocument before using getComputedStyle
+
+	0.97 (6/11/2012):
+		- Merging pull request #104 thx @gavrochelegnou - .bind instead of .one
+
+	0.96a (20/08/2012):
+		- Checking event is from dispatch target (issue #58)
+
+	0.96 (20/08/2012):
+		- Fixes for context, all elements returned as context (issue #84)
+		- Reset position with leaveTransforms !== true fixes (issue #93)
+		
+
+	0.95 (20/08/2012):
+		- If target opacity == current opacity, pass back to jquery native to get callback firing (#94)
+
+	0.94 (20/08/2012):
+		- Addresses Firefox callback mechanisms (issue #94)
+		- using $.one() to bind to CSS callbacks in a more generic way
+
+	0.93 (6/8/2012):
+		- Adding other Opera 'transitionend' event (re: issue #90)
+
+	0.92 (6/8/2012):
+		- Seperate unbinds into different threads (re: issue #91)
+
+	0.91 (2/4/2012):
+		- Merge Pull Request #74 - Unit Management
+
+	0.90 (7/3/2012):
+		- Adding public $.toggleDisabledByDefault() feature to disable entire plugin by default (Issue #73)
+
+	0.89 (24/1/2012):
+		- Adding 'avoidCSSTransitions' property. Set to true to disable entire plugin. (Issue #47)
+
+	0.88 (24/1/2012):
+		- Fix Issue #67 for HighchartsJS compatibility
+
+	0.87 (24/1/2012):
+		- Fix Issue #66 selfCSSData.original is undefined
+
+	0.86 (9/1/2012):
+		- Strict JS fix for undefined variable
+
+	0.85 (20/12/2011):
+		- Merge Pull request #57 from Kronuz
+		- Codebase cleaned and now passes jshint.
+		- Fixed a few bugs (it now saves and restores the original css transition properties).
+		- fadeOut() is fixed, it wasn't restoring the opacity after hiding it.
+
+	0.80 (13/09/2011):
+		- Issue #28 - Report $(el).is(':animated') fix
+
+	0.79 (06/09/2011):
+		- Issue #42 - Right negative position animation: please see issue notes on Github.
+
+	0.78 (02/09/2011):
+		- Issue #18 - jQuery/$ reference joys
+
+	0.77 (02/09/2011):
+		- Adding feature on Github issue #44 - Use 3D Transitions by default
+
+	0.76 (28/06/2011):
+		- Fixing issue #37 - fixed stop() method (with gotoEnd == false)
+
+	0.75 (15/06/2011):
+		- Fixing issue #35 to pass actual object back as context for callback
+
+	0.74 (28/05/2011):
+		- Fixing issue #29 to play nice with 1.6+
+
+	0.73 (05/03/2011):
+		- Merged Pull Request #26: Fixed issue with fadeOut() / "hide" shortcut
+
+	0.72 (05/03/2011):
+		- Merged Pull Request #23: Added Penner equation approximations from Matthew Lein's Ceaser, and added failsafe fallbacks
+
+	0.71 (05/03/2011):
+		- Merged Pull Request #24: Changes translation object to integers instead of strings to fix relative values bug with leaveTransforms = true
+
+	0.70 (17/03/2011):
+		- Merged Pull Request from amlw-nyt to add bottom/right handling
+
+	0.68 (15/02/2011):
+		- width/height fixes & queue issues resolved.
+
+	0.67 (15/02/2011):
+		- Code cleanups & file size improvements for compression.
+
+	0.66 (15/02/2011):
+		- Zero second fadeOut(), fadeIn() fixes
+
+	0.65 (01/02/2011):
+		- Callbacks with queue() support refactored to support element arrays
+
+	0.64 (27/01/2011):
+		- BUGFIX #13: .slideUp(), .slideToggle(), .slideDown() bugfixes in Webkit
+
+	0.63 (12/01/2011):
+		- BUGFIX #11: callbacks not firing when new value == old value
+
+	0.62 (10/01/2011):
+		- BUGFIX #11: queue is not a function issue fixed
+
+	0.61 (10/01/2011):
+		- BUGFIX #10: Negative positions converting to positive
+
+	0.60 (06/01/2011):
+		- Animate function rewrite in accordance with new queue system
+		- BUGFIX #8: Left/top position values always assumed relative rather than absolute
+		- BUGFIX #9: animation as last item in a chain - the chain is ignored?
+		- BUGFIX: width/height CSS3 transformation with left/top working
+
+	0.55 (22/12/2010):
+		- isEmptyObject function for <jQuery 1.4 (requires 1.3.2)
+
+	0.54a (22/12/2010):
+		- License changed to MIT (http://www.opensource.org/licenses/mit-license.php)
+
+	0.54 (22/12/2010):
+		- Removed silly check for 'jQuery UI' bailouts. Sorry.
+		- Scoping issues fixed - Issue #4: $(this) should give you a reference to the selector being animated.. per jquery's core animation funciton.
+
+	0.53 (17/11/2010):
+		- New $.translate() method to easily calculate current transformed translation
+		- Repeater callback bug fix for leaveTransforms:true (was constantly appending properties)
+
+	0.52 (16/11/2010):
+		- leaveTransforms: true bug fixes
+		- 'Applying' user callback function to retain 'this' context
+
+	0.51 (08/11/2010):
+		- Bailing out with jQuery UI. This is only so the plugin plays nice with others and is TEMPORARY.
+
+	0.50 (08/11/2010):
+		- Support for $.fn.stop()
+		- Fewer jQuery.fn entries to preserve namespace
+		- All references $ converted to jQuery
+		- jsDoc Toolkit style commenting for docs (coming soon)
+
+	0.49 (19/10/2010):
+		- Handling of 'undefined' errors for secondary CSS objects
+		- Support to enhance 'width' and 'height' properties (except shortcuts involving jQuery.fx.step, e.g slideToggle)
+		- Bugfix: Positioning when using avoidTransforms: true (thanks Ralf Santbergen reports)
+		- Bugfix: Callbacks and Scope issues
+
+	0.48 (13/10/2010):
+		- Checks for 3d support before applying
+
+	0.47 (12/10/2010);
+		- Compatible with .fadeIn(), .fadeOut()
+		- Use shortcuts, no duration for jQuery default or "fast" and "slow"
+		- Clean up callback event listeners on complete (preventing multiple callbacks)
+
+	0.46 (07/10/2010);
+		- Compatible with .slideUp(), .slideDown(), .slideToggle()
+
+	0.45 (06/10/2010):
+		- 'Zero' position bug fix (was originally translating by 0 zero pixels, i.e. no movement)
+
+	0.4 (05/10/2010):
+		- Iterate over multiple elements and store transforms in jQuery.data per element
+		- Include support for relative values (+= / -=)
+		- Better unit sanitization
+		- Performance tweaks
+		- Fix for optional callback function (was required)
+		- Applies data[translateX] and data[translateY] to elements for easy access
+		- Added 'easeInOutQuint' easing function for CSS transitions (requires jQuery UI for JS anims)
+		- Less need for leaveTransforms = true due to better position detections
 */
 
 (function(jQuery, originalAnimateMethod, originalStopMethod) {
@@ -32,9 +254,8 @@ THE SOFTWARE.
 	// ----------
 	// Plugin variables
 	// ----------
-	var	cssTransitionProperties = ['top', 'right', 'bottom', 'left', 'rotate', 'scale', 'opacity', 'height', 'width'],
+	var	cssTransitionProperties = ['top', 'right', 'bottom', 'left', 'opacity', 'height', 'width'],
 		directions = ['top', 'right', 'bottom', 'left'],
-		transform = ['rotate', 'scale', 'translate'],
 		cssPrefixes = ['-webkit-', '-moz-', '-o-', ''],
 		pluginOptions = ['avoidTransforms', 'useTranslate3d', 'leaveTransforms'],
 		rfxnum = /^([+-]=)?([\d+-.]+)(.*)$/,
@@ -46,10 +267,6 @@ THE SOFTWARE.
 				right : 0,
 				bottom : 0,
 				left : 0
-			},
-			pause: {
-				transform: {},
-				property: {}
 			}
 		},
 		valUnit = 'px',
@@ -173,28 +390,17 @@ THE SOFTWARE.
 
 	/**
 		@private
-		@name _getTranslate
+		@name _getTranslation
 		@function
-		@description Make a matrix with property
-		@param {Object.<left, top, rotate>} meta 
-		@param {boolean} [use3D] Use translate3d if available? NOT USE
-		@returns {String} Matrix
+		@description Make a translate or translate3d string
+		@param {integer} [x]
+		@param {integer} [y]
+		@param {boolean} [use3D] Use translate3d if available?
 	*/
-	function _getTranslate(e, meta, use3D) {
-		var z = null;
-		// 3d actif by default
-		//if((use3D === true || ((use3DByDefault === true && use3D !== false)) && has3D))
-		//	z = 1;
-			
-		var transform = new Transform(e);
-		transform.translate( meta.left, meta.top, z );
-		if(meta.rotate)
-			transform.rotate( meta.rotate );
-		if(meta.scale)
-			transform.scale( meta.scale, meta.scale );
-		
-		return  transform.getCssFormat();
+	function _getTranslation(x, y, use3D) {
+		return ((use3D === true || ((use3DByDefault === true && use3D !== false)) && has3D)) ? 'translate3d(' + x + 'px, ' + y + 'px, 0)' : 'translate(' + x + 'px,' + y + 'px)';
 	}
+
 
 	/**
 		@private
@@ -216,6 +422,7 @@ THE SOFTWARE.
 			offsetPosition = value,
 			isDirection = jQuery.inArray(property, directions) > -1;
 
+
 		if (isDirection) {
 			var meta = enhanceData.meta,
 				cleanPropertyValue = _cleanValue(e.css(property)) || 0,
@@ -227,8 +434,7 @@ THE SOFTWARE.
 			meta[property] = offsetPosition;
 			meta[stashedProperty] = e.css(property) == 'auto' ? 0 + offsetPosition : cleanPropertyValue + offsetPosition || 0;
 			enhanceData.meta = meta;
-			enhanceData.pause['transform']['translate'+(property=='left'? 'X':'Y')] = offsetPosition;
-			
+
 			// fix 0 issue (transition by 0 = nothing)
 			if (isTranslatable && offsetPosition === 0) {
 				offsetPosition = 0 - meta[stashedProperty];
@@ -236,61 +442,9 @@ THE SOFTWARE.
 				meta[stashedProperty] = 0;
 			}
 		}
-		else if(isTransform) {
-			var meta = enhanceData.meta;
-			meta[property] = offsetPosition;
-			enhanceData.pause['transform'][property] = offsetPosition;
-		}
-		else{
-			enhanceData.pause['property'][property] = value;
-			enhanceData.pause['property'][property+'_o'] = parseFloat(e.css(property));
-		}
-			
-		e.data(DATA_KEY, _applyCSSWithPrefixTransition(e, enhanceData, duration, easing));
-		
+
 		// reapply data and return
 		return e.data(DATA_KEY, _applyCSSWithPrefix(e, enhanceData, property, duration, easing, offsetPosition, isTransform, isTranslatable, use3D));
-	}
-
-	/**
-		@private
-		@name _applyCSSWithPrefix
-		@function
-		@description Add css properties for transition
-		@param {object} [cssProperties] Current CSS object to merge with
-		@param {integer} [duration]
-		@param {string} [easing]
-	*/	
-	function _applyCSSWithPrefixTransition(e, cssProperties, duration, easing) {
-		var cssProperties = cssProperties || {};
-		cssProperties.properties = cssProperties.properties||{};
-		
-		var saveOriginal = false;
-		if (!cssProperties.original) {
-			cssProperties.original = {};
-			saveOriginal = true;
-		}
-		
-		var properties = cssProperties.properties,
-			original = cssProperties.original;
-		
-		for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-			var tp = cssPrefixes[i] + 'transition-property',
-				td = cssPrefixes[i] + 'transition-duration',
-				tf = cssPrefixes[i] + 'transition-timing-function';
-
-			if (saveOriginal) {
-				original[tp] = e.css(tp) || '';
-				original[td] = e.css(td) || '';
-				original[tf] = e.css(tf) || '';
-			}
-
-			properties[tp] = 'all';
-			properties[td] = duration + 'ms';
-			properties[tf] = easing;
-		}
-		
-		return cssProperties;
 	}
 
 	/**
@@ -308,24 +462,43 @@ THE SOFTWARE.
 		@param {boolean} [use3D] Use translate3d if available?
 	*/
 	function _applyCSSWithPrefix(e, cssProperties, property, duration, easing, value, isTransform, isTranslatable, use3D) {
-		var transform = isTransform === true && isTranslatable === true;
+		var saveOriginal = false,
+			transform = isTransform === true && isTranslatable === true;
+
 
 		cssProperties = cssProperties || {};
+		if (!cssProperties.original) {
+			cssProperties.original = {};
+			saveOriginal = true;
+		}
 		cssProperties.properties = cssProperties.properties || {};
 		cssProperties.secondary = cssProperties.secondary || {};
 
 		var meta = cssProperties.meta,
-			pause = cssProperties.pause,
+			original = cssProperties.original,
+			properties = cssProperties.properties,
 			secondary = cssProperties.secondary;
-		
+
 		for (var i = cssPrefixes.length - 1; i >= 0; i--) {
+			var tp = cssPrefixes[i] + 'transition-property',
+				td = cssPrefixes[i] + 'transition-duration',
+				tf = cssPrefixes[i] + 'transition-timing-function';
 
 			property = (transform ? cssPrefixes[i] + 'transform' : property);
-			secondary[property] = transform ? _getTranslate(e, meta, use3D) : value;
+
+			if (saveOriginal) {
+				original[tp] = e.css(tp) || '';
+				original[td] = e.css(td) || '';
+				original[tf] = e.css(tf) || '';
+			}
+
+			secondary[property] = transform ? _getTranslation(meta.left, meta.top, use3D) : value;
+
+			properties[tp] = (properties[tp] ? properties[tp] + ',' : '') + property;
+			properties[td] = (properties[td] ? properties[td] + ',' : '') + duration + 'ms';
+			properties[tf] = (properties[tf] ? properties[tf] + ',' : '') + easing;
 		}
-		
-		pause['duration'] = duration;
-		
+
 		return cssProperties;
 	}
 
@@ -473,15 +646,27 @@ THE SOFTWARE.
 		}
 
 		var	elem = this[0],
-			cStyle = new Transform(elem).get(),
-			translation = {x: 0, y: 0};
-		
-		if(cStyle.translateX || cStyle.translateY){
+			cStyle = window.getComputedStyle(elem, null),
 			translation = {
-				x: cStyle.translateX||0,
-				y: cStyle.translateY||0
+				x: 0,
+				y: 0
 			};
+
+		if (cStyle) {
+			for (var i = cssPrefixes.length - 1; i >= 0; i--) {
+				var transform = cStyle.getPropertyValue(cssPrefixes[i] + 'transform');
+				if (transform && (/matrix/i).test(transform)) {
+					var explodedMatrix = transform.replace(/^matrix\(/i, '').split(/, |\)$/g);
+					translation = {
+						x: parseInt(explodedMatrix[4], 10),
+						y: parseInt(explodedMatrix[5], 10)
+					};
+
+					break;
+				}
+			}
 		}
+
 		return translation;
 	};
 
@@ -520,7 +705,6 @@ THE SOFTWARE.
 		return this[ optall.queue === true ? 'queue' : 'each' ](function() {
 			var self = jQuery(this),
 				opt = jQuery.extend({}, optall),
-				// END
 				cssCallback = function(e) {
 					var selfCSSData = self.data(DATA_KEY) || { original: {} },
 						restore = {};
@@ -531,13 +715,7 @@ THE SOFTWARE.
 					// convert translations to left & top for layout
 					if (prop.leaveTransforms !== true) {
 						for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-							// TODO: right/bottom crash
-							// reset transform
-							if(selfCSSData.secondary.transform){
-								restore[cssPrefixes[i] + 'transform'] = new Transform(selfCSSData.secondary.transform)
-									.translate( -selfCSSData.meta.left, -selfCSSData.meta.top)
-									.getCssFormat();
-							}
+							restore[cssPrefixes[i] + 'transform'] = '';
 						}
 						if (isTranslatable && typeof selfCSSData.meta !== 'undefined') {
 							for (var j = 0, dir; (dir = directions[j]); ++j) {
@@ -606,19 +784,13 @@ THE SOFTWARE.
 				domProperties = {},
 				cssEasing = easings[opt.easing || 'swing'] ? easings[opt.easing || 'swing'] : opt.easing || 'swing';
 
-			
-			var resetTransform = false;
-			
 			// seperate out the properties for the relevant animation functions
 			for (var p in prop) {
 				if (jQuery.inArray(p, pluginOptions) === -1) {
 					var isDirection = jQuery.inArray(p, directions) > -1,
-						isTransform = jQuery.inArray(p, transform) > -1,
 						cleanVal = _interpretValue(self, prop[p], p, (isDirection && prop.avoidTransforms !== true));
 
-					if(isTransform)
-						resetTransform = true;
-					
+
 					if (/**prop.avoidTransforms !== true && **/_appropriateProperty(p, cleanVal, self)) {
 						_applyCSSTransition(
 							self,
@@ -626,9 +798,10 @@ THE SOFTWARE.
 							opt.duration,
 							cssEasing,
 							cleanVal, //isDirection && prop.avoidTransforms === true ? cleanVal + valUnit : cleanVal,
-							(isDirection && prop.avoidTransforms !== true) || isTransform,
+							isDirection && prop.avoidTransforms !== true,
 							isTranslatable,
 							prop.useTranslate3d);
+
 					}
 					else {
 						domProperties[p] = prop[p];
@@ -643,25 +816,14 @@ THE SOFTWARE.
 
 			if (selfCSSData && !_isEmptyObject(selfCSSData) && !_isEmptyObject(selfCSSData.secondary)) {
 				callbackQueue++;
-				
-				// reset transformation
-				if(resetTransform){
-					var reset = {};
-					
-					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-						reset[cssPrefixes[i]+'transform'] = '';
-					}	
-					
-					self.css(reset);
-				}
-				
+
+				self.css(selfCSSData.properties);
+
 				// store in a var to avoid any timing issues, depending on animation duration
 				var secondary = selfCSSData.secondary;
 
 				// has to be done in a timeout to ensure transition properties are set
 				setTimeout(function() {
-					selfCSSData.pause.timestamp = new Date().getTime();
-					self.css(selfCSSData.properties);
 					self.bind(transitionEndEvent, cssCallback).css(secondary);
 				});
 			}
@@ -687,121 +849,15 @@ THE SOFTWARE.
 	};
 
     jQuery.fn.animate.defaults = {};
-	
-	/**
-		@public
-		@name jQuery.fn.pause
-		@function
-		@description The enhanced jQuery.pause function
-	*/
-	jQuery.fn.pause = function() {
-		this.each(function() {
-			var self = jQuery(this),
-				selfCSSData = self.data(DATA_KEY);
-			
-			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
-				var	pauseData = selfCSSData.pause,
-					transform = pauseData.transform,
-					property = pauseData.property,
-					time = pauseData.duration,
-					posTime = new Date().getTime()-pauseData.timestamp,
-					selfCSSUpdate = {},
-					ratio = 100*posTime/time;
 
-				self.css(selfCSSData.original);
-				
-				if(!$.isEmptyObject(property)){
-					var val = null;
 
-					for(var key in property){
-						// not original value
-						if(key.indexOf('_o') == -1){
-							val = new Range(
-								{min: 0, max: time}, 
-								{min: property[key+'_o'], max: property[key]})
-							.getOutput(posTime);
-							
-							selfCSSUpdate[key] = val;
-						}
-					}
-				}
-
-				// transform set
-				if(!$.isEmptyObject(transform)){
-					var trans = new Transform();
-
-					// translate
-					if(transform.translateX || transform.translateY || transform.translateZ){
-						trans.translate(transform.translateX/100*ratio, 
-										transform.translateY/100*ratio, 
-										transform.translateZ/100*ratio);
-					}
-
-					// rotate
-					if(transform.rotate){
-						trans.rotate(transform.rotate/100*ratio);
-					}
-
-					// scale - Range because... shit this calcul
-					if(transform.scale){
-						trans.scale(new Range(
-							{min: 0, max: time}, 
-							{min: 1, max: transform.scale})
-						.getOutput(posTime));
-					}
-
-					trans = trans.getCssFormat();
-
-					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-						selfCSSData.properties[cssPrefixes[i]+'transition-duration'] = time/100*ratio+'ms';
-						selfCSSUpdate[cssPrefixes[i]+'transform'] = trans;
-					}
-				}
-
-				self.css(selfCSSUpdate);
-			}
-		});
-		
-		return this;
-	};
-
-	/**
-		@public
-		@name jQuery.fn.play
-		@function
-		@description The enhanced jQuery.play function
-	*/
-	jQuery.fn.play = function() {
-		this.each(function() {
-			var self = jQuery(this),
-				selfCSSData = self.data(DATA_KEY);
-			
-			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
-			
-				// reset transformation
-				var reset = {};
-				for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-					reset[cssPrefixes[i]+'transform'] = '';
-				}
-
-				self.css(reset)
-					.css(selfCSSData.properties);
-
-				setTimeout(function(){
-					self.css(selfCSSData.secondary);
-				});	
-			}
-		});
-		return this;
-	};
-	
 	/**
 		@public
 		@name jQuery.fn.stop
 		@function
 		@description The enhanced jQuery.stop function (resets transforms to left/top)
 		@param {boolean} [clearQueue]
-		@param {boolean} [gotoEnd] - NOT WORK
+		@param {boolean} [gotoEnd]
 		@param {boolean} [leaveTransforms] Leave transforms/translations as they are? Default: false (reset translations to calculated explicit left/top props)
 	*/
 	jQuery.fn.stop = function(clearQueue, gotoEnd, leaveTransforms) {
@@ -810,44 +866,8 @@ THE SOFTWARE.
 		// clear the queue?
 		if (clearQueue) this.queue([]);
 
-		this.each(function() {
-			var self = jQuery(this),
-				selfCSSData = self.data(DATA_KEY);
-			
-			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
-				
-				self.pause();
-				self.unbind(transitionEndEvent);
-				self.data(DATA_KEY, '');
-				
-				var translate = new Transform(self);
-				var getTranslate = {x: translate.get().translateX, y: translate.get().translateY};
-				
-				// clear translate
-				if(getTranslate.x || getTranslate.y){
-					translate = translate.set('translateX', 0).set('translateY', 0).getCssFormat();
-					
-					var cssTransform = {};
-					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-						cssTransform[cssPrefixes[i]+'transform'] = translate;
-					}
-					
-					self.css({
-							left: parseInt(self.css('left'))+(getTranslate.x||0),
-							top: parseInt(self.css('top'))+(getTranslate.y||0)
-						})
-						.css(cssTransform);
-					
-				}
-			}
-			else {
-				// dom transition
-				originalStopMethod.apply(self, [clearQueue, gotoEnd]);
-			}
-		});
-		
 		// route to appropriate stop methods
-		/*this.each(function() { console.log(this);
+		this.each(function() {
 			var self = jQuery(this),
 				selfCSSData = self.data(DATA_KEY);
 
@@ -869,16 +889,32 @@ THE SOFTWARE.
 						}
 					}
 				} else if (!_isEmptyObject(selfCSSData.secondary)) {
-					//var cStyle = new Transform(self[0]).get();
-					restore['left'] = parseFloat(self.css('left')) + valUnit||'auto';
-					restore['top'] = parseFloat(self.css('top')) + valUnit||'auto';
-					
-					// remove the transformations
-					for (i = cssPrefixes.length - 1; i >= 0; i--) {
-						restore[cssPrefixes[i]+'transform'] = '';
+					var cStyle = window.getComputedStyle(self[0], null);
+					if (cStyle) {
+						// grab current properties
+						for (var prop in selfCSSData.secondary) {
+							if(selfCSSData.secondary.hasOwnProperty(prop)) {
+								prop = prop.replace(rupper, '-$1').toLowerCase();
+								restore[prop] = cStyle.getPropertyValue(prop);
+
+								// is this a matrix property? extract left and top and apply
+								if (!leaveTransforms && (/matrix/i).test(restore[prop])) {
+									var explodedMatrix = restore[prop].replace(/^matrix\(/i, '').split(/, |\)$/g);
+
+									// apply the explicit left/top props
+									restore['left'] = (parseFloat(explodedMatrix[4]) + parseFloat(self.css('left')) + valUnit) || 'auto';
+									restore['top'] = (parseFloat(explodedMatrix[5]) + parseFloat(self.css('top')) + valUnit) || 'auto';
+
+									// remove the transformations
+									for (i = cssPrefixes.length - 1; i >= 0; i--) {
+										restore[cssPrefixes[i]+'transform'] = '';
+									}
+								}
+							}
+						}
 					}
 				}
-				
+
 				// Remove transition timing functions
 				// Moving to seperate thread (re: Animation reverts when finished in Android - issue #91)
 				self.unbind(transitionEndEvent);
@@ -886,95 +922,13 @@ THE SOFTWARE.
 					css(selfCSSData.original).
 					css(restore).
 					data(DATA_KEY, null);
-				
 			}
 			else {
 				// dom transition
-				//originalStopMethod.apply(self, [clearQueue, gotoEnd]);
+				originalStopMethod.apply(self, [clearQueue, gotoEnd]);
 			}
-		});*/
+		});
 
 		return this;
-	};
-	
-	/** 
-	 * Return value between input and output
-	 * @constructor
-	 * @param {Object.<min,max>} input data
-	 * @param {Object.<min,max>} output data
-	 * @param {Boolean} [lim=true] limit
-	 */
-	var Range = function(input, output, lim){
-
-		var   inp = input
-			, out = output
-			, lim = lim===false? false:true
-		;
-
-		inp.ampl = Math.abs(inp.max-inp.min)
-		out.ampl = Math.abs(out.max-out.min);
-
-		/**
-		* convert inp>out
-		* @param {Number} o input value
-		* @returns {Number} output value
-		*/
-		this.getOutput = function(o){
-
-			if(lim){
-				var min = Math.min(inp.min, inp.max);
-				var max = Math.max(inp.min, inp.max);
-				if(o>=max || o<=min){
-					o = (o>=max)? max: min; 
-				}
-			}
-			return calcul(o, 'inp');
-		};
-
-		/**
-		* convert out>inp
-		* @param {Number} o output value
-		* @returns {Number} input value
-		*/
-		this.getInput = function(o){
-
-			if(lim){
-				var min = Math.min(out.min, out.max);
-				var max = Math.max(out.min, out.max);
-				if(o>=max || o<=min){
-				  o = (o>=max)? max: min; 
-				}
-			}
-			return calcul(o, 'out');
-		};
-
-
-		/**
-		* calcul function
-		* @param {Number} o inp or out
-		* @param {string} [type='inp'] 'inp' or 'out'
-		* @returns {Number} inp or out
-		*/
-		function calcul(o, type){
-
-			var type = type||'inp'
-			  , oStart = o
-			  , first = (type==='inp')? inp:out
-			  , second = (type==='inp')? out:inp
-			;
-
-			// set to zero
-			var oZero = oStart-first.min;
-			if(first.min>0)
-				oZero *= -1;
-			oZero = oZero/first.ampl;
-
-			// retransform
-			var sens = (second.max>second.min)? 1:-1;
-			var val = second.ampl*oZero;
-			val = second.min+(val*sens);
-
-			return val;
-		}
 	};
 })(jQuery, jQuery.fn.animate, jQuery.fn.stop);

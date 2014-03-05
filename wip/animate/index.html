@@ -16,10 +16,16 @@
 			border: 1px solid black; 
 			/*-webkit-transform: rotate(90deg);*/
 		}
+		#ab{
+			left: 400px;	
+		}
 	</style>
 
 	<div id="0" class="anim">
   		<p>ANIMATE !</p>
+	</div>
+	<div id="ab" class="anim">
+  		<p>ANIMATE2 !</p>
 	</div>
 	
 	<script>
@@ -50,19 +56,40 @@
 		});
 	})();
 	</script>
+	<!-- original -->
+	<!--<script src="enhancedOriginal.js"></script>-->
 	
-	<script src="jquery.animate-enhanced.js"></script>
-	<script src="matrix.js"></script>
-	<!--<script src="transform.js"></script>-->
+	<!-- by matrix -->
+	<!--<script src="enhancedMatrix.js"></script>
+	<script src="matrix.js"></script>-->
+	
+	<!-- by transform -->
+	<script src="enhancedTransform.js"></script>
+	<script src="transform.js"></script>
+	
+	<!-- rotate -->
+	<!--<script src="jquery-css-transform.js"></script>
+	<script src="jquery-animate-css-rotate-scale.js"></script>-->
+	
 	<script>
 		
 		//var ori = $('#0').css('WebkitTransform');
 		//var m = new Matrix(ori);
 		
 		$('.anim').css({
-			WebkitTransform: 'rotate(0deg) scale(1.1) translateZ(1px) '
+			WebkitTransform: 'rotateZ(0deg) scale(1.1)'
 		});
-		$('.anim').animate({left: 500, top: 100, rotate: 1000}, 1000, 'linear');
+		$('.anim').animate({left: 500, top: 100, rotate: 90, opacity: 0.5, width: 50, scale:0.5}, 1000, 'linear', function(){ console.log($(this))
+		$(this).animate({opacity: 0}, 500, 'linear');	
+		});
+		setTimeout(function(){ 
+			//$('.anim').pause();
+			$('.anim').stop();
+			setTimeout(function(){
+			//$('.anim').animate({height: 50}, 1000, 'linear');			 
+			//$('.anim').play();	
+			}, 200);
+		 }, 500);
 	</script>
 </body>
 </html>	
