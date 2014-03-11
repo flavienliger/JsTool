@@ -80,6 +80,7 @@
 	</script>
 	
 	<script src="drag.js"></script>
+	<script src="transform.js"></script>
 	<script>
 		
 		$( ".draggable" ).draggable({
@@ -89,7 +90,7 @@
 				console.log('start', ui.helper);
 			},
 			stop: function(e, ui){
-				console.log('stop', ui.helper);
+				console.log('stop', e);
 			},
 			//cursorAt: {left: 55, top: 52},
 			tolerance: 'pointer',

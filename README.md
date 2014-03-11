@@ -27,6 +27,17 @@ Fork of __[animate enhanced](https://github.com/benbarnett/jQuery-Animate-Enhanc
 	$('.anim').pause();	// pause - laggy in android
 	$('.anim').play();  // play - resume animation
 	$('.anim').stop();	// partial rework
+	$('.anim').fadeIn().fadeOut(); // rework chainage
+	$('.anim').rotate(90); // rotate
+	
+	// fix callback - all objects are call
+	$('.anim').animate({ left: 100 }, function(){
+		$(this).fadeOut();
+	});
+	
+	// fix bug animate
+	$('.anim').fadeOut();
+	$('.anim').fadeOut(); // fix them - return false
 
 Matrix.js and Transform.js
 ========

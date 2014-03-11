@@ -97,6 +97,14 @@ THE SOFTWARE.
 	}
 
 
+	function _getValueTransform(e, val) {
+		var trans = new Transform(e).get();	
+		if(val == 'rotate')
+			return trans.rotateZ;
+		if(val == 'scale')
+			return trans.scaleX;
+	}
+	
 	/**
 		@private
 		@name _interpretValue
@@ -113,7 +121,7 @@ THE SOFTWARE.
 		if (!_isValidElement(e)) return;
 		
 		var parts = rfxnum.exec(val),
-			start = e.css(prop) === 'auto' ? 0 : e.css(prop),
+			start = ($.inArray(prop, transform)!=-1)? _getValueTransform(e, prop): e.css(prop) === 'auto' ? 0 : e.css(prop),
 			cleanCSSStart = typeof start == 'string' ? _cleanValue(start) : start,
 			cleanTarget = typeof val == 'string' ? _cleanValue(val) : val,
 			cleanStart = isTransform === true ? 0 : cleanCSSStart,
@@ -158,13 +166,13 @@ THE SOFTWARE.
 
 		if (parts) {
 			var end = parseFloat(parts[2]);
-
+			
 			// If a +=/-= token was provided, we're doing a relative animation
 			if (parts[1]) end = ((parts[1] === '-=' ? -1 : 1) * end) + parseInt(cleanStart, 10);
 
 			// check for unit  as per issue #69
 			if (parts[3] && parts[3] != 'px') end = end + parts[3];
-
+			
 			return end;
 		} else {
 			return cleanStart;
@@ -188,9 +196,9 @@ THE SOFTWARE.
 			
 		var transform = new Transform(e);
 		transform.translate( meta.left, meta.top, z );
-		if(meta.rotate)
+		if(meta.rotate !== undefined)
 			transform.rotate( meta.rotate );
-		if(meta.scale)
+		if(meta.scale !== undefined)
 			transform.scale( meta.scale, meta.scale );
 		
 		return  transform.getCssFormat();
@@ -213,7 +221,7 @@ THE SOFTWARE.
 	function _applyCSSTransition(e, property, duration, easing, value, isTransform, isTranslatable, use3D) {
 		var eCSSData = e.data(DATA_KEY),
 			enhanceData = eCSSData && !_isEmptyObject(eCSSData) ? eCSSData : jQuery.extend(true, {}, defaultEnhanceData),
-			offsetPosition = value,
+			offsetPosition = parseFloat(value),
 			isDirection = jQuery.inArray(property, directions) > -1;
 
 		if (isDirection) {
@@ -230,11 +238,11 @@ THE SOFTWARE.
 			enhanceData.pause['transform']['translate'+(property=='left'? 'X':'Y')] = offsetPosition;
 			
 			// fix 0 issue (transition by 0 = nothing)
-			if (isTranslatable && offsetPosition === 0) {
+			/*if (isTranslatable && offsetPosition === 0) {
 				offsetPosition = 0 - meta[stashedProperty];
 				meta[property] = offsetPosition;
 				meta[stashedProperty] = 0;
-			}
+			}*/
 		}
 		else if(isTransform) {
 			var meta = enhanceData.meta;
@@ -242,10 +250,10 @@ THE SOFTWARE.
 			enhanceData.pause['transform'][property] = offsetPosition;
 		}
 		else{
-			enhanceData.pause['property'][property] = value;
+			enhanceData.pause['property'][property] = parseFloat(value);
 			enhanceData.pause['property'][property+'_o'] = parseFloat(e.css(property));
 		}
-			
+		
 		e.data(DATA_KEY, _applyCSSWithPrefixTransition(e, enhanceData, duration, easing));
 		
 		// reapply data and return
@@ -425,6 +433,46 @@ THE SOFTWARE.
 		return is;
 	}
 
+	function _checkCSS(e, key, value) {
+		
+		var val;
+		
+		// opacity
+		if(typeof value=='string'){
+			val = value=='show'? 'block' : 'none';
+		}
+		else{
+			val = parseFloat(value);
+		}
+		
+		// isTransform
+		if($.inArray(key, transform) != -1) {
+			var trans = new Transform(e).get();
+			
+			if ( key == 'rotate' ) {
+				if( trans.rotateZ == val ) {
+					return false;	
+				}
+			}
+			if( key == 'scale' ) {
+				if(	trans.scaleX == val ) {
+					return false;	
+				}
+			}
+			
+			return true;
+		}
+		else {
+			// check display for opacity
+			var css = (typeof val == 'string')? e.css('display'): parseFloat(e.css(key));
+			
+			if( css == val ) {
+				return false;
+			}
+			return true;
+		}
+	}
+	
 
 	jQuery.extend({
 		/**
@@ -498,18 +546,31 @@ THE SOFTWARE.
 		@param {function} [callback]
 	*/
 	jQuery.fn.animate = function(prop, speed, easing, callback) {
+
+		var chain = false;
+		$(this).each(function(i, obj){
+			if($(obj).data(DATA_KEY)){
+				$(this).queue(function(){
+					$(this).animate(prop, speed, easing, callback);
+				});
+				chain = true; 
+			}
+		});
+		if(chain) return this;
+		
 		prop = prop || {};
 		var isTranslatable = !(typeof prop['bottom'] !== 'undefined' || typeof prop['right'] !== 'undefined'),
 			optall = jQuery.speed(speed, easing, callback),
 			callbackQueue = 0,
 			propertyCallback = function() {
-				callbackQueue--;
+				optall.complete.apply(this, arguments);
+				/*callbackQueue--;
 				if (callbackQueue === 0) {
 					// we're done, trigger the user callback
 					if (typeof optall.complete === 'function') {
 						optall.complete.apply(this, arguments);
 					}
-				}
+				}*/
 			},
 			bypassPlugin = (typeof prop['avoidCSSTransitions'] !== 'undefined') ? prop['avoidCSSTransitions'] : pluginDisabledDefault;
 
@@ -533,7 +594,7 @@ THE SOFTWARE.
 						for (var i = cssPrefixes.length - 1; i >= 0; i--) {
 							// TODO: right/bottom crash
 							// reset transform
-							if(selfCSSData.secondary.transform){
+							if(selfCSSData.secondary && selfCSSData.secondary.transform){
 								restore[cssPrefixes[i] + 'transform'] = new Transform(selfCSSData.secondary.transform)
 									.translate( -selfCSSData.meta.left, -selfCSSData.meta.top)
 									.getCssFormat();
@@ -541,19 +602,28 @@ THE SOFTWARE.
 						}
 						if (isTranslatable && typeof selfCSSData.meta !== 'undefined') {
 							for (var j = 0, dir; (dir = directions[j]); ++j) {
-								restore[dir] = selfCSSData.meta[dir + '_o'] + valUnit;
-								jQuery(this).css(dir, restore[dir]);
+								if(selfCSSData.meta[dir + '_o'] !== undefined){
+									restore[dir] = selfCSSData.meta[dir + '_o'] + valUnit;
+									//jQuery(this).css(dir, restore[dir]);
+								}
 							}
 						}
 					}
-
+					
 					// remove transition timing functions
-					self.
-						unbind(transitionEndEvent).
-						css(selfCSSData.original).
-						css(restore).
-						data(DATA_KEY, null);
-
+					self.unbind(transitionEndEvent)
+						.css(selfCSSData.original)
+						
+					// fix android latency
+					setTimeout(function(){
+						self.css(restore)
+							.data(DATA_KEY, null);
+						
+						
+						// run the main callback function
+						propertyCallback.apply(this, [e]);
+					},50);
+					
 					// if we used the fadeOut shortcut make sure elements are display:none
 					if (prop.opacity === 'hide') {
 						elem = self[0];
@@ -568,9 +638,7 @@ THE SOFTWARE.
 
 						self.css('opacity', '');
 					}
-
-					// run the main callback function
-					propertyCallback.call(this);
+					
 				},
 				easings = {
 					bounce: CUBIC_BEZIER_OPEN + '0.0, 0.35, .5, 1.3' + CUBIC_BEZIER_CLOSE,
@@ -606,8 +674,19 @@ THE SOFTWARE.
 				domProperties = {},
 				cssEasing = easings[opt.easing || 'swing'] ? easings[opt.easing || 'swing'] : opt.easing || 'swing';
 
-			
-			var resetTransform = false;
+			// protect duplicate animation
+			var check = false;
+			for(var key in prop){
+				// check if two css is same
+				if(_checkCSS(self, key, prop[key])){
+					check = true;	
+				}
+			}
+			// all same
+			if(!check){
+				propertyCallback.apply(this);
+				return this;
+			}
 			
 			// seperate out the properties for the relevant animation functions
 			for (var p in prop) {
@@ -615,9 +694,6 @@ THE SOFTWARE.
 					var isDirection = jQuery.inArray(p, directions) > -1,
 						isTransform = jQuery.inArray(p, transform) > -1,
 						cleanVal = _interpretValue(self, prop[p], p, (isDirection && prop.avoidTransforms !== true));
-
-					if(isTransform)
-						resetTransform = true;
 					
 					if (/**prop.avoidTransforms !== true && **/_appropriateProperty(p, cleanVal, self)) {
 						_applyCSSTransition(
@@ -644,25 +720,15 @@ THE SOFTWARE.
 			if (selfCSSData && !_isEmptyObject(selfCSSData) && !_isEmptyObject(selfCSSData.secondary)) {
 				callbackQueue++;
 				
-				// reset transformation
-				if(resetTransform){
-					var reset = {};
-					
-					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-						reset[cssPrefixes[i]+'transform'] = '';
-					}	
-					
-					self.css(reset);
-				}
-				
 				// store in a var to avoid any timing issues, depending on animation duration
 				var secondary = selfCSSData.secondary;
-
+				
 				// has to be done in a timeout to ensure transition properties are set
 				setTimeout(function() {
 					selfCSSData.pause.timestamp = new Date().getTime();
 					self.css(selfCSSData.properties);
-					self.bind(transitionEndEvent, cssCallback).css(secondary);
+					self.bind(transitionEndEvent, cssCallback)
+					self.css(secondary);
 				});
 			}
 			else {
@@ -687,6 +753,24 @@ THE SOFTWARE.
 	};
 
     jQuery.fn.animate.defaults = {};
+	
+	jQuery.fn.rotate = function(a) {
+		var angle = parseFloat(a)||0;
+		
+		this.each(function() {
+			var self = jQuery(this);
+			var css = {};
+			var transform = new Transform(self).set('rotateZ', angle).getCssFormat();
+			
+			for (var i = cssPrefixes.length - 1; i >= 0; i--) {
+				css[cssPrefixes[i]+'transform'] = transform;
+			}
+			
+			self.css(css);
+		});	
+		
+		return this;
+	};
 	
 	/**
 		@public
@@ -845,54 +929,6 @@ THE SOFTWARE.
 				originalStopMethod.apply(self, [clearQueue, gotoEnd]);
 			}
 		});
-		
-		// route to appropriate stop methods
-		/*this.each(function() { console.log(this);
-			var self = jQuery(this),
-				selfCSSData = self.data(DATA_KEY);
-
-			// is this a CSS transition?
-			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
-				var i, restore = {};
-
-				if (gotoEnd) {
-					// grab end state properties
-					restore = selfCSSData.secondary;
-
-					if (!leaveTransforms && typeof selfCSSData.meta['left_o'] !== undefined || typeof selfCSSData.meta['top_o'] !== undefined) {
-						restore['left'] = typeof selfCSSData.meta['left_o'] !== undefined ? selfCSSData.meta['left_o'] : 'auto';
-						restore['top'] = typeof selfCSSData.meta['top_o'] !== undefined ? selfCSSData.meta['top_o'] : 'auto';
-
-						// remove the transformations
-						for (i = cssPrefixes.length - 1; i >= 0; i--) {
-							restore[cssPrefixes[i]+'transform'] = '';
-						}
-					}
-				} else if (!_isEmptyObject(selfCSSData.secondary)) {
-					//var cStyle = new Transform(self[0]).get();
-					restore['left'] = parseFloat(self.css('left')) + valUnit||'auto';
-					restore['top'] = parseFloat(self.css('top')) + valUnit||'auto';
-					
-					// remove the transformations
-					for (i = cssPrefixes.length - 1; i >= 0; i--) {
-						restore[cssPrefixes[i]+'transform'] = '';
-					}
-				}
-				
-				// Remove transition timing functions
-				// Moving to seperate thread (re: Animation reverts when finished in Android - issue #91)
-				self.unbind(transitionEndEvent);
-				self.
-					css(selfCSSData.original).
-					css(restore).
-					data(DATA_KEY, null);
-				
-			}
-			else {
-				// dom transition
-				//originalStopMethod.apply(self, [clearQueue, gotoEnd]);
-			}
-		});*/
 
 		return this;
 	};
