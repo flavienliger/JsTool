@@ -25,11 +25,19 @@
 			{name: 'scaleY', unit: ''}
 		];
 
-		var str = el||'';
-		if(typeof str !== 'string')
-			str = $(el).get(0).style.WebkitTransform;
-
-		this.transform = this.convert(str);
+		var obj = el||'';
+		
+		// object
+		if($.isPlainObject(obj))
+			this.transform = obj;
+		// dom or string
+		else{
+			// element
+			if(typeof obj !== 'string')
+				obj = $(el).get(0).style.WebkitTransform;
+			
+			this.transform = this.convert(obj);
+		}
 	};
 
 	Transform.prototype = {
@@ -47,7 +55,7 @@
 			var s, sl;
 			var axe = ['X', 'Y', 'Z'];
 
-			for(var i=0, l=this.term.length; i<l; i++){
+			for(i=0, l=this.term.length; i<l; i++){
 				name = this.term[i].name;
 				if(transform.indexOf(name+'(') != -1){
 					temp = transform.substr(transform.indexOf(name)+name.length+1, transform.length);
@@ -120,7 +128,6 @@
 		 * @returns {String}
 		 */
 		set: function(type, val, add){
-			var add = add!==undefined? add: false;
 			
 			if(add && this.transform[type])
 				this.transform[type] += val||0;
@@ -132,9 +139,28 @@
 
 		/**
 		 * Get object transform
+		 * @param {Boolean} full - return null parameter
 		 * @returns {Object}
 		 */
-		get: function(){
+		get: function(full){
+			if(full){
+				var obj = {};
+				var order = [
+					'translateX', 'translateY',// 'translateZ',
+					'scaleX', 'scaleY',
+					'rotateX', 'rotateY', 'rotateZ'
+				];
+				var val = [
+					0,0,
+					1,1,
+					0,0,0
+				];
+				
+				for(var i=6; i>=0; i--){
+					obj[order[i]] = this.transform[order[i]]||val[i];
+				}
+				return obj;
+			}
 			return this.transform;
 		},
 
@@ -201,7 +227,7 @@
 		 */
 		scale: function(x, y){
 			this.set('scaleX', x);
-			this.set('scaleY', y==undefined || y !== null? x: y);
+			this.set('scaleY', y===undefined || y !== null? x: y);
 
 			return this;
 		}

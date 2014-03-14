@@ -27,6 +27,8 @@ THE SOFTWARE.
 ---
 */
 
+// FIXME: '-=' fail why translate
+
 (function(jQuery, originalAnimateMethod, originalStopMethod) {
 
 	// ----------
@@ -48,8 +50,10 @@ THE SOFTWARE.
 				left : 0
 			},
 			pause: {
-				transform: {},
-				property: {}
+				transform : {},
+				property : {},
+				actif : false,
+				update: {}
 			}
 		},
 		valUnit = 'px',
@@ -285,17 +289,19 @@ THE SOFTWARE.
 		for (var i = cssPrefixes.length - 1; i >= 0; i--) {
 			var tp = cssPrefixes[i] + 'transition-property',
 				td = cssPrefixes[i] + 'transition-duration',
-				tf = cssPrefixes[i] + 'transition-timing-function';
+				tf = cssPrefixes[i] + 'transition-timing-function'//,
+				//bv = cssPrefixes[i] + 'backface-visibility';
 
 			if (saveOriginal) {
 				original[tp] = e.css(tp) || '';
-				original[td] = e.css(td) || '';
+				original[td] = '0.001s';//e.css(td) || '';
 				original[tf] = e.css(tf) || '';
 			}
 
 			properties[tp] = 'all';
 			properties[td] = duration + 'ms';
 			properties[tf] = easing;
+			//properties[bv] = 'hidden';
 		}
 		
 		return cssProperties;
@@ -331,7 +337,7 @@ THE SOFTWARE.
 			property = (transform ? cssPrefixes[i] + 'transform' : property);
 			secondary[property] = transform ? _getTranslate(e, meta, use3D) : value;
 		}
-		
+		pause['original'] = new Transform(e).get(true);
 		pause['duration'] = duration;
 		
 		return cssProperties;
@@ -433,6 +439,16 @@ THE SOFTWARE.
 		return is;
 	}
 
+	
+	/**
+		@private
+		@name _checkCSS
+		@function
+		@description Function for check if the css is already used
+		@param {jQuery} [e] - element
+		@param {String} [key] - key of css
+		@param {String|Number} [value] - value of css
+	*/
 	function _checkCSS(e, key, value) {
 		
 		var val;
@@ -532,8 +548,23 @@ THE SOFTWARE.
 		}
 		return translation;
 	};
-
-
+	
+	var nextQueue = function(e){
+		if(e.data('queue')){
+			var queue = e.data('queue');
+			var act = e.data('queue-state');
+			
+			if(act>=queue.length)
+				return false;
+			
+			e.animate.apply(e, queue[act]);
+			
+			act ++;
+			e.data('queue-state', act);
+		}
+		return false;
+	};
+	
 
 	/**
 		@public
@@ -548,22 +579,35 @@ THE SOFTWARE.
 	jQuery.fn.animate = function(prop, speed, easing, callback) {
 
 		var chain = false;
+		var arg = arguments;
+		
 		$(this).each(function(i, obj){
+			// already animate
 			if($(obj).data(DATA_KEY)){
-				$(this).queue(function(){
-					$(this).animate(prop, speed, easing, callback);
-				});
+				// queue
+				var queue = [];
+				if($(this).data('queue')){
+					queue = $(this).data('queue');	
+				}
+				queue.push(arg);
+				$(this).data('queue', queue);
+				
+				if($(this).data('queue-state')===undefined){
+					$(this).data('queue-state', 0);
+				}
 				chain = true; 
 			}
 		});
 		if(chain) return this;
-		
+
 		prop = prop || {};
-		var isTranslatable = !(typeof prop['bottom'] !== 'undefined' || typeof prop['right'] !== 'undefined'),
+		var isTranslatable = !(prop['bottom'] !== undefined || prop['right'] !== undefined),
 			optall = jQuery.speed(speed, easing, callback),
 			callbackQueue = 0,
 			propertyCallback = function() {
 				optall.complete.apply(this, arguments);
+				
+				// old chain system
 				/*callbackQueue--;
 				if (callbackQueue === 0) {
 					// we're done, trigger the user callback
@@ -585,17 +629,26 @@ THE SOFTWARE.
 				cssCallback = function(e) {
 					var selfCSSData = self.data(DATA_KEY) || { original: {} },
 						restore = {};
-
-					if (e.eventPhase != 2)  // not at dispatching target (thanks @warappa issue #58)
+					
+					// not at dispatching target (thanks @warappa issue #58)
+					if (e.eventPhase != 2)  
 						return;
 
+					if (selfCSSData.pause && selfCSSData.pause.actif)
+						return;
+					
+					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
+						selfCSSData.original[cssPrefixes[i]+'transition-duration'] = '0s';
+					}
+					
 					// convert translations to left & top for layout
 					if (prop.leaveTransforms !== true) {
 						for (var i = cssPrefixes.length - 1; i >= 0; i--) {
 							// TODO: right/bottom crash
 							// reset transform
 							if(selfCSSData.secondary && selfCSSData.secondary.transform){
-								restore[cssPrefixes[i] + 'transform'] = new Transform(selfCSSData.secondary.transform)
+								restore[cssPrefixes[i] + 'transform'] = 
+									new Transform(selfCSSData.secondary.transform)
 									.translate( -selfCSSData.meta.left, -selfCSSData.meta.top)
 									.getCssFormat();
 							}
@@ -613,15 +666,19 @@ THE SOFTWARE.
 					// remove transition timing functions
 					self.unbind(transitionEndEvent)
 						.css(selfCSSData.original)
-						
+					
 					// fix android latency
 					setTimeout(function(){
 						self.css(restore)
 							.data(DATA_KEY, null);
 						
-						
-						// run the main callback function
-						propertyCallback.apply(this, [e]);
+
+						setTimeout(function(){
+							// run the main callback function
+							propertyCallback.apply(self, [e]);
+							
+							nextQueue(self);
+						}, 50);
 					},50);
 					
 					// if we used the fadeOut shortcut make sure elements are display:none
@@ -643,7 +700,7 @@ THE SOFTWARE.
 				easings = {
 					bounce: CUBIC_BEZIER_OPEN + '0.0, 0.35, .5, 1.3' + CUBIC_BEZIER_CLOSE,
 					linear: 'linear',
-					swing: 'ease-in-out',
+					easeInOut: 'ease-in-out',
 
 					// Penner equation approximations from Matthew Lein's Ceaser: http://matthewlein.com/ceaser/
 					easeInQuad:     CUBIC_BEZIER_OPEN + '0.550, 0.085, 0.680, 0.530' + CUBIC_BEZIER_CLOSE,
@@ -672,8 +729,9 @@ THE SOFTWARE.
 					easeInOutBack:  CUBIC_BEZIER_OPEN + '0.680, -0.550, 0.265, 1.550' + CUBIC_BEZIER_CLOSE
 				},
 				domProperties = {},
-				cssEasing = easings[opt.easing || 'swing'] ? easings[opt.easing || 'swing'] : opt.easing || 'swing';
-
+				//cssEasing = easings[opt.easing || 'easeInOut'] ? easings[opt.easing || 'easeInOut'] : opt.easing || 'easeInOut';
+				cssEasing = 'linear';
+				
 			// protect duplicate animation
 			var check = false;
 			for(var key in prop){
@@ -682,9 +740,11 @@ THE SOFTWARE.
 					check = true;	
 				}
 			}
+			
 			// all same
 			if(!check){
 				propertyCallback.apply(this);
+				//nextQueue($(this));
 				return this;
 			}
 			
@@ -716,9 +776,10 @@ THE SOFTWARE.
 
 			var selfCSSData = self.data(DATA_KEY);
 
-
 			if (selfCSSData && !_isEmptyObject(selfCSSData) && !_isEmptyObject(selfCSSData.secondary)) {
 				callbackQueue++;
+				
+				selfCSSData.pause.easing = cssEasing == easings.easeInOut? 'easeInOut': opt.easing;
 				
 				// store in a var to avoid any timing issues, depending on animation duration
 				var secondary = selfCSSData.secondary;
@@ -772,27 +833,82 @@ THE SOFTWARE.
 		return this;
 	};
 	
+	var calculEase = function(curb, t){
+		var easings = {
+			// defaults
+			'linear'            : [0.250, 0.250, 0.750, 0.750],
+			'ease'              : [0.250, 0.100, 0.250, 1.000],
+			'easeIn'            : [0.420, 0.000, 1.000, 1.000],
+			'easeOut'           : [0.000, 0.000, 0.580, 1.000],
+			'easeInOut'         : [0.000, 0.000, 0.580, 1.000],
+			// Penner equations
+			'easeInCubic'       : [.55,.055,.675,.19],
+			'easeOutCubic'      : [.215,.61,.355,1],
+			'easeInOutCubic'    : [.645,.045,.355,1],
+			'easeInCirc'        : [.6,.04,.98,.335],
+			'easeOutCirc'       : [.075,.82,.165,1],
+			'easeInOutCirc'     : [.785,.135,.15,.86],
+			'easeInExpo'        : [.95,.05,.795,.035],
+			'easeOutExpo'       : [.19,1,.22,1],
+			'easeInOutExpo'     : [1,0,0,1],
+			'easeInQuad'        : [.55,.085,.68,.53],
+			'easeOutQuad'       : [.25,.46,.45,.94],
+			'easeInOutQuad'     : [.455,.03,.515,.955],
+			'easeInQuart'       : [.895,.03,.685,.22],
+			'easeOutQuart'      : [.165,.84,.44,1],
+			'easeInOutQuart'    : [.77,0,.175,1],
+			'easeInQuint'       : [.755,.05,.855,.06],
+			'easeOutQuint'      : [.23,1,.32,1],
+			'easeInOutQuint'    : [.86,0,.07,1],
+			'easeInSine'        : [.47,0,.745,.715],
+			'easeOutSine'       : [.39,.575,.565,1],
+			'easeInOutSine'     : [.445,.05,.55,.95],
+			'easeInBack'        : [.6,-.28,.735,.045],
+			'easeOutBack'       : [.175, .885,.32,1.275],
+			'easeInOutBack'     : [.68,-.55,.265,1.55]
+		};
+		
+		var curb = [].concat([0,0], easings[curb]||easings['ease'], [1,1]);
+		if(t<0) t=0;
+		if(t>1) t=1;
+		
+		var x = Math.pow(1-t, 3)*curb[0] + 3*t*Math.pow(1-t, 2)*curb[2] + 3*Math.pow(t,2)*(1-t)*curb[4] + Math.pow(t, 3)*curb[6];
+		var y = Math.pow(1-t, 3)*curb[1] + 3*t*Math.pow(1-t, 2)*curb[3] + 3*Math.pow(t,2)*(1-t)*curb[5] + Math.pow(t, 3)*curb[7];
+		console.log(x, y);
+		return {x:x, y:y};
+	};
+	
+	var easePercent = function(curb, t){
+		
+		var pos = calculEase(curb, t);
+		var pytha = Math.sqrt((pos.x*pos.x)+(pos.y*pos.y));
+		return pytha;
+	};
+	
 	/**
 		@public
 		@name jQuery.fn.pause
 		@function
 		@description The enhanced jQuery.pause function
 	*/
-	jQuery.fn.pause = function() {
+	jQuery.fn.pause = function(stop) { 
 		this.each(function() {
 			var self = jQuery(this),
 				selfCSSData = self.data(DATA_KEY);
 			
 			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
+				
 				var	pauseData = selfCSSData.pause,
 					transform = pauseData.transform,
 					property = pauseData.property,
 					time = pauseData.duration,
-					posTime = new Date().getTime()-pauseData.timestamp,
+					timePause = new Date().getTime(),
+					posTime = timePause-pauseData.timestamp,
 					selfCSSUpdate = {},
-					ratio = 100*posTime/time;
-
-				self.css(selfCSSData.original);
+					//ratio = calculEase(pauseData.easing, posTime/time).y*100;
+					ratio = posTime/time*100;
+				
+				console.log(ratio);
 				
 				if(!$.isEmptyObject(property)){
 					var val = null;
@@ -809,11 +925,12 @@ THE SOFTWARE.
 						}
 					}
 				}
-
+				
 				// transform set
 				if(!$.isEmptyObject(transform)){
-					var trans = new Transform();
-
+					var original = $.extend({}, pauseData.original);
+					var trans = new Transform(original);
+					
 					// translate
 					if(transform.translateX || transform.translateY || transform.translateZ){
 						trans.translate(transform.translateX/100*ratio, 
@@ -823,10 +940,10 @@ THE SOFTWARE.
 
 					// rotate
 					if(transform.rotate){
-						trans.rotate(transform.rotate/100*ratio);
+						trans.rotate(trans.get().rotateZ+transform.rotate/100*ratio);
 					}
 
-					// scale - Range because... shit this calcul
+					// scale
 					if(transform.scale){
 						trans.scale(new Range(
 							{min: 0, max: time}, 
@@ -837,11 +954,18 @@ THE SOFTWARE.
 					trans = trans.getCssFormat();
 
 					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-						selfCSSData.properties[cssPrefixes[i]+'transition-duration'] = time/100*ratio+'ms';
-						selfCSSUpdate[cssPrefixes[i]+'transform'] = trans;
+						selfCSSData.properties[cssPrefixes[i]+'transition-duration'] = time-posTime+'ms';
+						//if(!stop)
+							selfCSSUpdate[cssPrefixes[i]+'transform'] = trans;
 					}
+					
+					pauseData.update = trans;
 				}
-
+				
+				pauseData.timePause = timePause;
+				pauseData.actif = true;
+				
+				self.css(selfCSSData.original);
 				self.css(selfCSSUpdate);
 			}
 		});
@@ -860,14 +984,18 @@ THE SOFTWARE.
 			var self = jQuery(this),
 				selfCSSData = self.data(DATA_KEY);
 			
-			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
+			if (selfCSSData && !_isEmptyObject(selfCSSData) && selfCSSData.pause.actif) {
 			
+				// update timestamp
+				selfCSSData.pause.timestamp += new Date().getTime()-selfCSSData.pause.timePause;
+				selfCSSData.pause.actif = false;
+				
 				// reset transformation
 				var reset = {};
 				for (var i = cssPrefixes.length - 1; i >= 0; i--) {
 					reset[cssPrefixes[i]+'transform'] = '';
 				}
-
+				
 				self.css(reset)
 					.css(selfCSSData.properties);
 
@@ -885,48 +1013,87 @@ THE SOFTWARE.
 		@function
 		@description The enhanced jQuery.stop function (resets transforms to left/top)
 		@param {boolean} [clearQueue]
-		@param {boolean} [gotoEnd] - NOT WORK
+		@param {boolean} [gotoEnd]
 		@param {boolean} [leaveTransforms] Leave transforms/translations as they are? Default: false (reset translations to calculated explicit left/top props)
 	*/
 	jQuery.fn.stop = function(clearQueue, gotoEnd, leaveTransforms) {
 		if (!cssTransitionsSupported) return originalStopMethod.apply(this, [clearQueue, gotoEnd]);
 
 		// clear the queue?
-		if (clearQueue) this.queue([]);
-
+		//if (clearQueue) this.queue([]);
+		
 		this.each(function() {
 			var self = jQuery(this),
 				selfCSSData = self.data(DATA_KEY);
+		
+			// reset queue
+			self.data('queue', null);
+			self.data('queue-state', 0);
+			self.data('anim', {top: parseInt(self.css('top')), left: parseInt(self.css('left'))});
 			
 			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
 				
-				self.pause();
 				self.unbind(transitionEndEvent);
-				self.data(DATA_KEY, '');
 				
-				var translate = new Transform(self);
-				var getTranslate = {x: translate.get().translateX, y: translate.get().translateY};
+				if(!selfCSSData.pause.actif)
+					self.pause(true);
 				
-				// clear translate
-				if(getTranslate.x || getTranslate.y){
-					translate = translate.set('translateX', 0).set('translateY', 0).getCssFormat();
-					
-					var cssTransform = {};
-					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
-						cssTransform[cssPrefixes[i]+'transform'] = translate;
-					}
-					
-					self.css({
-							left: parseInt(self.css('left'))+(getTranslate.x||0),
-							top: parseInt(self.css('top'))+(getTranslate.y||0)
-						})
-						.css(cssTransform);
-					
+				var transition = {};
+				for (var i = cssPrefixes.length - 1; i >= 0; i--) {
+					transition[cssPrefixes[i]+'transition-duration'] = '0s';
 				}
-			}
-			else {
-				// dom transition
-				originalStopMethod.apply(self, [clearQueue, gotoEnd]);
+				
+				setTimeout(function(){
+					self.css(transition);
+				}, 30);
+				
+				if(gotoEnd){
+					// reset transformation
+					var reset = {};
+					for (var i = cssPrefixes.length - 1; i >= 0; i--) {
+						reset[cssPrefixes[i]+'transform'] = '';
+					}
+
+					self.css(reset)
+					
+					setTimeout(function(){
+						self.css(selfCSSData.secondary);
+					}, 70);	
+				}
+				else if(!leaveTransforms){
+					var original = selfCSSData.pause.original;
+					var translate = new Transform(selfCSSData.pause.update);
+					var getTranslate = {x: translate.get().translateX, y: translate.get().translateY};
+					
+					// clear translate
+					if(getTranslate.x || getTranslate.y){
+						getTranslate.x -= original.translateX;
+						getTranslate.y -= original.translateY;
+						
+						translate = translate.set('translateX', original.translateX)
+											.set('translateY', original.translateY)
+											.getCssFormat();
+
+						var cssTransform = {};
+						for (var i = cssPrefixes.length - 1; i >= 0; i--) {
+							cssTransform[cssPrefixes[i]+'transform'] = translate;
+						}
+
+						cssTransform['left'] = parseInt(self.css('left'))+(getTranslate.x||0);
+						cssTransform['top'] = parseInt(self.css('top'))+(getTranslate.y||0);
+						
+						self.data('anim', {top: cssTransform['top'], left: cssTransform['left']});
+						
+						setTimeout(function(){
+							self.css(cssTransform);
+						}, 70);
+					}
+				}
+				
+				setTimeout(function(){
+					self.data(DATA_KEY, '');
+					nextQueue(self);
+				}, 100);
 			}
 		});
 

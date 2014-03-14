@@ -77,7 +77,7 @@
 		/**
 		 * Set option of drag
 		 * @param {Array} arg - argument for option
-		 * @returns {String|Boolean|Function}
+		 * @returns {Variant}
 		 */
 		_setOption: function(arg){
 
@@ -161,6 +161,10 @@
 			this.obj.bind($.events.mousedown, self._waitStart)
 				.bind($.events.mousemove, self._waitDrag)
 				.bind($.events.mouseup, self._stop);
+			
+			// trigger mouseup
+			if(touch)
+				this.obj.bind('mouseup', self._stop);
 
 			this._trigger('create', e);
 		},
@@ -200,9 +204,9 @@
 
 			var self = $(this).data('draggable');
 
-			if(!self.params.multitouch && self.isMultitouch())
+			if(!self.isDraggable || !self.params.multitouch && self.isMultitouch())
 				return false;
-
+			
 			self.isStart = true; // first start
 
 			// get identifier
@@ -408,7 +412,7 @@
 		 * @param {Event} e
 		 */
 		_stop: function(e){
-
+			
 			var self = $(this).data('draggable');
 			
 			e.stopPropagation();
@@ -624,7 +628,7 @@
 
 	/**
 	 * Extend jQuery draggable
-	 * @returns {jQuery} return option or chain jQuery
+	 * @returns {jQuery|variant} return option or chain jQuery
 	 */
 	$.fn.draggable = function(aParams){
 
@@ -773,10 +777,6 @@
 
 			$(this).addClass('ui-droppable');
 		});
-	};
-	
-	var getPosition = function(str, m, i) {
-	   return str.split(m, i).join(m).length;
 	};
 
 	/**
