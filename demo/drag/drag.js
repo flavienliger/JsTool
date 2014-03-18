@@ -3,7 +3,8 @@
 	var draggableElement = [];				// list of draggable element
 	var droppableElement = [];				// list of droppable element
 	var touch = $.events.mousedown == 'touchstart'? true: false;
-
+	
+	
 	/**
 	 * Drag
 	 * @param {jQuery} $o
@@ -90,7 +91,7 @@
 					if(arg[2] !== undefined){
 						
 						this._setActivate(select, arg[2]);
-						return this.params[select] = arg[2];
+						this.params[select] = arg[2];
 					}
 
 					// return single
@@ -222,6 +223,61 @@
 		},
 
 		/**
+		 * Set position for cursorAt option
+		 */
+		setCursorAt: function(){
+			var self = this;
+			
+			if(self.params.cursorAt.top !== undefined || self.params.cursorAt.left !== undefined){
+
+				var position = self.obj.position();
+				var margin = {
+					top: parseInt(self.obj.css('marginTop'), 10)||0,
+					left: parseInt(self.obj.css('marginLeft'), 10)||0
+				};
+				
+				var coords = {x: self.coord.parentX, y: self.coord.parentY};
+
+				var cursorAt = {
+					left: self.params.cursorAt.left*-1||0,
+					top: self.params.cursorAt.top*-1||0
+				};
+
+				// coord - pos + offset - margin
+				self.coord.translateX = coords.x-position.left+cursorAt.left-margin.top;
+				self.coord.translateY = coords.y-position.top+cursorAt.top-margin.left;
+
+				var transform = new Transform(self.obj)
+					.translate(self.coord.translateX, self.coord.translateY)
+					.getCssFormat();
+
+				self.moveObject.css({
+					WebkitTransform: transform
+				});
+			}
+		},
+
+		/**
+		 * Make moveObject (helper)
+		 */
+		makeHelper: function(){
+			var self = this;
+			
+			if(self.params.helper == 'clone'){
+				self.moveObject = self.obj.clone(true);
+				self.moveObject.removeAttr('id');
+			}
+			else if(typeof self.params.helper === 'function') {
+				self.moveObject = $(self.params.helper.call(self.obj.get(0)));
+			}
+			else {
+				self.moveObject = self.obj;		
+			}
+
+			self.moveObject.addClass('ui-draggable-dragging');
+		},
+		
+		/**
 		 * Start drag, set object
 		 * @param {Event} e
 		 */
@@ -229,59 +285,10 @@
 			var self = this;
 
 			/**
-			 * Set position for cursorAt option
-			 */
-			var cursorAt = function(){
-				if(self.params.cursorAt.top !== undefined || self.params.cursorAt.left !== undefined){
-
-					var coords = getCoordsDrag(self.obj.parent().get(0), e, self.touchID);
-					var pos = self.obj.position();
-					
-					var margin = {
-						top: parseInt(self.obj.css('marginTop'), 10)||0,
-						left: parseInt(self.obj.css('marginLeft'), 10)||0
-					};
-					
-					var cursorAt = {
-						left: self.params.cursorAt.left*-1||0,
-						top: self.params.cursorAt.top*-1||0
-					};
-					
-					// coord - pos + offset - margin
-					self.coord.translateX = coords.x-pos.left+cursorAt.left-margin.top;
-					self.coord.translateY = coords.y-pos.top+cursorAt.top-margin.left;
-
-					var transform = new Transform(self.obj)
-						.translate(self.coord.translateX, self.coord.translateY)
-						.getCssFormat();
-					
-					self.moveObject.css({
-						WebkitTransform: transform
-					});
-				}
-			};
-
-			/**
-			 * Make moveObject (helper)
-			 */
-			var helper = function(){
-				if(self.params.helper == 'clone'){
-					self.moveObject = self.obj.clone(true);
-				}
-				else if(typeof self.params.helper === 'function') {
-					self.moveObject = self.params.helper();
-				}
-				else {
-					self.moveObject = self.obj;		
-				}
-
-				self.moveObject.removeAttr('id').addClass('ui-draggable-dragging');
-			};
-
-			/**
 			 * Set position of moveObject
 			 */
 			var css = function(){
+				
 				if(self.params.helper == 'clone' || typeof self.params.helper === 'function'){
 					var position = self.obj.position();
 					var margin = {
@@ -303,13 +310,28 @@
 					position: (self.obj.css('position')=='relative' && self.params.helper != 'clone')? 'relative': 'absolute'
 				});
 			};
+			
+			var block = function(){
+				if(!self.params.multitouch)	{
+					$('<div>').addClass('drag-block').css({
+						position: 'absolute',
+						zIndex: 10000,
+						width: '100%',
+						height: '100%',
+						top: 0,
+						left: 0
+					}).appendTo('body');
+				}
+			};
 
 			// need before trigger start (for remove ID)
-			helper();
+			self.makeHelper();
 			
 			if(!self.params.enable || !self.isDraggable || self.isDrag || !this._trigger('start', e))
 				return false;
 
+			block();
+			
 			$.extend(self.coord, {
 				top: parseInt(self.obj.css('top'), 10)||0,
 				left: parseInt(self.obj.css('left'), 10)||0,
@@ -330,7 +352,7 @@
 			
 			setTimeout(function(){
 				css();
-				cursorAt();
+				self.setCursorAt();
 
 				// hide for clone
 				if(self.params.helper != 'original'){
@@ -351,15 +373,22 @@
 
 			var self = $(this).data('draggable');
 
+			var coords = getCoordsDrag($(this).parent().get(0), e, self.touchID);
+			
+			// temp for cursorAt
+			self.coord.parentX = coords.x;
+			self.coord.parentY = coords.y;
+			
 			if(!self.isStart)
 				return false;
 			if(self.isDrag)
 				return self._drag(e);
-
-			var coords = getCoordsDrag(document.body, e, self.touchID);
-
+			
+			coords = getCoordsDrag(document.body, e, self.touchID);
+			
 			if(Math.abs((self.coord.mouseX+self.coord.mouseY) - (coords.x+coords.y)) > self.params.distance){
 				self._start(e);
+				
 				self.coord.mouseX = coords.x;
 				self.coord.mouseY = coords.y;
 			}
@@ -458,7 +487,8 @@
 			if(this.params.helper != 'original'){
 				this.moveObject.remove();
 			}
-
+			
+			$('.drag-block').remove();
 			this.drop.unHover.apply(this, []);
 		},
 

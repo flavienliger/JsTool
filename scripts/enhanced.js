@@ -729,8 +729,8 @@ THE SOFTWARE.
 					easeInOutBack:  CUBIC_BEZIER_OPEN + '0.680, -0.550, 0.265, 1.550' + CUBIC_BEZIER_CLOSE
 				},
 				domProperties = {},
-				//cssEasing = easings[opt.easing || 'easeInOut'] ? easings[opt.easing || 'easeInOut'] : opt.easing || 'easeInOut';
-				cssEasing = 'linear';
+				cssEasing = easings[opt.easing || 'easeInOut'] ? easings[opt.easing || 'easeInOut'] : opt.easing || 'easeInOut';
+				//cssEasing = 'linear';
 				
 			// protect duplicate animation
 			var check = false;
@@ -874,15 +874,11 @@ THE SOFTWARE.
 		
 		var x = Math.pow(1-t, 3)*curb[0] + 3*t*Math.pow(1-t, 2)*curb[2] + 3*Math.pow(t,2)*(1-t)*curb[4] + Math.pow(t, 3)*curb[6];
 		var y = Math.pow(1-t, 3)*curb[1] + 3*t*Math.pow(1-t, 2)*curb[3] + 3*Math.pow(t,2)*(1-t)*curb[5] + Math.pow(t, 3)*curb[7];
-		console.log(x, y);
-		return {x:x, y:y};
-	};
-	
-	var easePercent = function(curb, t){
 		
-		var pos = calculEase(curb, t);
-		var pytha = Math.sqrt((pos.x*pos.x)+(pos.y*pos.y));
-		return pytha;
+		console.log(Math.pow(1-t, 3)*curb[0], 3*t*Math.pow(1-t, 2)*curb[2], 3*Math.pow(t,2)*(1-t)*curb[4], Math.pow(t, 3)*curb[6]);
+		console.log('x',x, 'y',y);
+		
+		return {x:x, y:y};
 	};
 	
 	/**
@@ -905,8 +901,8 @@ THE SOFTWARE.
 					timePause = new Date().getTime(),
 					posTime = timePause-pauseData.timestamp,
 					selfCSSUpdate = {},
-					//ratio = calculEase(pauseData.easing, posTime/time).y*100;
-					ratio = posTime/time*100;
+					ratio = calculEase(pauseData.easing, posTime/time).y*100;
+					//ratio = posTime/time*100;
 				
 				console.log(ratio);
 				
@@ -1017,7 +1013,7 @@ THE SOFTWARE.
 		@param {boolean} [leaveTransforms] Leave transforms/translations as they are? Default: false (reset translations to calculated explicit left/top props)
 	*/
 	jQuery.fn.stop = function(clearQueue, gotoEnd, leaveTransforms) {
-		if (!cssTransitionsSupported) return originalStopMethod.apply(this, [clearQueue, gotoEnd]);
+		//if (!cssTransitionsSupported) return originalStopMethod.apply(this, [clearQueue, gotoEnd]);
 
 		// clear the queue?
 		//if (clearQueue) this.queue([]);
@@ -1026,6 +1022,9 @@ THE SOFTWARE.
 			var self = jQuery(this),
 				selfCSSData = self.data(DATA_KEY);
 		
+			if(self.data('queue-stop'))
+				return;
+			
 			// reset queue
 			self.data('queue', null);
 			self.data('queue-state', 0);
@@ -1033,6 +1032,7 @@ THE SOFTWARE.
 			
 			if (selfCSSData && !_isEmptyObject(selfCSSData)) {
 				
+				self.data('queue-stop', true);
 				self.unbind(transitionEndEvent);
 				
 				if(!selfCSSData.pause.actif)
@@ -1091,6 +1091,7 @@ THE SOFTWARE.
 				}
 				
 				setTimeout(function(){
+					self.data('queue-stop', false);
 					self.data(DATA_KEY, '');
 					nextQueue(self);
 				}, 100);
