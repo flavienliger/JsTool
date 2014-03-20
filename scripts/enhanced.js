@@ -875,10 +875,42 @@ THE SOFTWARE.
 		var x = Math.pow(1-t, 3)*curb[0] + 3*t*Math.pow(1-t, 2)*curb[2] + 3*Math.pow(t,2)*(1-t)*curb[4] + Math.pow(t, 3)*curb[6];
 		var y = Math.pow(1-t, 3)*curb[1] + 3*t*Math.pow(1-t, 2)*curb[3] + 3*Math.pow(t,2)*(1-t)*curb[5] + Math.pow(t, 3)*curb[7];
 		
-		console.log(Math.pow(1-t, 3)*curb[0], 3*t*Math.pow(1-t, 2)*curb[2], 3*Math.pow(t,2)*(1-t)*curb[4], Math.pow(t, 3)*curb[6]);
-		console.log('x',x, 'y',y);
-		
 		return {x:x, y:y};
+	};
+	
+	jQuery.fn.getAnimPos = function(){
+		var self = jQuery(this),
+			selfCSSData = self.data(DATA_KEY);
+
+		if (selfCSSData && !_isEmptyObject(selfCSSData)) {
+			var	pauseData = selfCSSData.pause,
+				transform = pauseData.transform,
+				time = pauseData.duration,
+				timePause = new Date().getTime(),
+				posTime = timePause-pauseData.timestamp,
+				ratio = calculEase(pauseData.easing, posTime/time).y*100;
+
+			// transform set
+			if(!$.isEmptyObject(transform)){
+				var original = $.extend({}, pauseData.original);
+				var trans = new Transform(original);
+
+				// translate
+				if(transform.translateX || transform.translateY || transform.translateZ){
+					trans.translate(transform.translateX/100*ratio, 
+									transform.translateY/100*ratio, 
+									transform.translateZ/100*ratio);
+				}
+
+				trans = trans.get(true);
+				
+				return { 
+					top: (parseInt(self.css('top'))||0) + trans.translateY,
+					left: (parseInt(self.css('left'))||0) + trans.translateX
+				};
+			}
+		}
+		return false;
 	};
 	
 	/**
@@ -903,8 +935,6 @@ THE SOFTWARE.
 					selfCSSUpdate = {},
 					ratio = calculEase(pauseData.easing, posTime/time).y*100;
 					//ratio = posTime/time*100;
-				
-				console.log(ratio);
 				
 				if(!$.isEmptyObject(property)){
 					var val = null;

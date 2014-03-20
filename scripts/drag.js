@@ -1,9 +1,85 @@
 (function($){
-		
-	var draggableElement = [];				// list of draggable element
-	var droppableElement = [];				// list of droppable element
+	
 	var touch = $.events.mousedown == 'touchstart'? true: false;
 	
+	
+	/**
+	 * Set option of drag
+	 * @param {Array} arg - argument for option
+	 * @returns {Variant}
+	 */
+	var _setOption = function(arg){
+
+		if(arg[0] === 'option'){
+
+			if(typeof arg[1] === 'string'){
+				var select = arg[1];
+
+				// set value
+				if(arg[2] !== undefined){
+
+					_setActivate.apply(this, [select, arg[2]]);
+					this.params[select] = arg[2];
+				}
+
+				// return single
+				return this.params[select];
+			}
+
+			// set object value
+			else if($.isPlainObject(arg[1])){
+				$.extend(this.params, arg[1]);
+			}
+
+			// return all
+			return this.params;
+		}
+		// { option }
+		else if($.isPlainObject(arg[0])){
+
+			_setActivate.apply(this, [arg[0]]);
+			$.extend(this.params, arg[0]);
+
+			return this.params;
+		}
+		// disable/ enable
+		else {
+
+			var select = arg[0];
+			return _setActivate.apply(this, [select]);
+		}
+	};
+
+	/**
+	 * Set enable or disable
+	 * @param {Array} arg - argument to check
+	 * @param {Boolean} [val] - value of disable/enable
+	 * @returns {Boolean}
+	 */
+	var _setActivate = function(arg, val){
+
+		var obj = $.isPlainObject(arg);
+		var enable = -1, disable = -1;
+
+		if(arg === 'enable' || (obj && arg.enable!==undefined)){
+			enable = val!==undefined? val: obj? arg.enable: true;	
+		}
+		else if(arg === 'disable' || arg === 'disabled' || (obj && arg.disabled!==undefined)){
+			disable = val!==undefined? val: obj? arg.disabled: true;
+		}
+
+		if(enable===-1 && disable===-1)
+			return false;
+
+		this.params.disabled = disable!==-1? disable: !enable;
+		this.params.enable = enable!==-1? enable: !disable;
+
+		return disable!==-1? disable: enable;
+	};
+	
+	
+	/* ---------------------------------------------- */
+	/* --------------- DRAGGABLE -------------------- */
 	
 	/**
 	 * Drag
@@ -43,7 +119,8 @@
 			enable: true,					// enable
 			helper: 'original',				// original/ helper/ fct
 			multitouch: false,				// multitouch element
-			distance: 1						// range before start
+			distance: 1,					// range before start
+			axis: 0							// contraint axis x/y/0
 		};
 
 		$.extend(this.params, aParams);
@@ -68,85 +145,11 @@
 
 			this.obj.trigger(event, data);
 
-			if(self.params[type]){
+			if(self.params[type] && typeof self.params[type] === 'function'){
 				return self.params[type].apply(this.obj.get(0), [event, {helper: self.moveObject}])===false?false: true;
 			}
 			
 			return true;
-		},
-
-		/**
-		 * Set option of drag
-		 * @param {Array} arg - argument for option
-		 * @returns {Variant}
-		 */
-		_setOption: function(arg){
-
-			if(arg[0] === 'option'){
-
-				if(typeof arg[1] === 'string'){
-					var select = arg[1];
-
-					// set value
-					if(arg[2] !== undefined){
-						
-						this._setActivate(select, arg[2]);
-						this.params[select] = arg[2];
-					}
-
-					// return single
-					return this.params[select];
-				}
-
-				// set object value
-				else if($.isPlainObject(arg[1])){
-					$.extend(this.params, arg[1]);
-				}
-
-				// return all
-				return this.params;
-			}
-			// { option }
-			else if($.isPlainObject(arg[0])){
-				
-				this._setActivate(arg[0]);
-				$.extend(this.params, arg[0]);
-				
-				return this.params;
-			}
-			// disable/ enable
-			else {
-
-				var select = arg[0];
-				return this._setActivate(select);
-			}
-		},
-		
-		/**
-		 * Set enable or disable
-		 * @param {Array} arg - argument to check
-		 * @param {Boolean} [val] - value of disable/enable
-		 * @returns {Boolean}
-		 */
-		_setActivate: function(arg, val){
-			
-			var obj = $.isPlainObject(arg);
-			var enable = -1, disable = -1;
-			
-			if(arg === 'enable' || (obj && arg.enable!==undefined)){
-				enable = val!==undefined? val: obj? arg.enable: true;	
-			}
-			else if(arg === 'disable' || arg === 'disabled' || (obj && arg.disabled!==undefined)){
-				disable = val!==undefined? val: obj? arg.disabled: true;
-			}
-			
-			if(enable===-1 && disable===-1)
-				return false;
-			
-			this.params.disabled = disable!==-1? disable: !enable;
-			this.params.enable = enable!==-1? enable: !disable;
-			
-			return disable!==-1? disable: enable;
 		},
 
 		/**
@@ -190,8 +193,9 @@
 		 */
 		isMultitouch: function(){
 
-			for(var i=0, l=draggableElement.length; i<l; i++){
-				if(draggableElement[i].isStart)
+			var el = _getDraggableElement();
+			for(var i=0, l=el.length; i<l; i++){
+				if(el[i].isStart)
 					return true;
 			}
 			return false;
@@ -256,7 +260,7 @@
 				});
 			}
 		},
-
+		
 		/**
 		 * Make moveObject (helper)
 		 */
@@ -361,7 +365,7 @@
 					self.moveObject.show().appendTo(self.obj.parent());
 				}
 				
-				self.drop.update.apply(this, [e]);
+				dropManage.update.apply(this, [e]);
 			}, 50);
 		},
 
@@ -412,8 +416,8 @@
 			self.params.drag.apply(self.obj.get(0), [e]);
 
 			var move = {
-				x: coords.x - self.coord.mouseX,
-				y: coords.y - self.coord.mouseY
+				x: self.params.axis == 'y'? 0: (coords.x - self.coord.mouseX),
+				y: self.params.axis == 'x'? 0: (coords.y - self.coord.mouseY)
 			};
 
 			var translate = {
@@ -433,7 +437,7 @@
 				WebkitTransform: new Transform(self.moveObject).translate(move.x, move.y).getCssFormat()
 			});
 
-			self.drop.hover.apply(this, [e, coords]);
+			dropManage.hover.apply(this, [e, coords]);
 		},
 
 		/**
@@ -467,7 +471,7 @@
 					.getCssFormat()
 			});
 			
-			var dropped = self.drop.check.apply(self, [self.coord.event, {x: self.coord.mouseX, y: self.coord.mouseY}]);
+			var dropped = dropManage.check.apply(self, [self.coord.event, {x: self.coord.mouseX, y: self.coord.mouseY}]);
 			var revert = self.valueFct('revert');
 
 			if(String(revert) == 'true' || (revert == 'invalid' && !dropped) || (revert == 'valid' && dropped)){ 
@@ -489,7 +493,7 @@
 			}
 			
 			$('.drag-block').remove();
-			this.drop.unHover.apply(this, []);
+			dropManage.unHover.apply(this, []);
 		},
 
 		/**
@@ -546,116 +550,28 @@
 				.unbind($.events.mousemove, self._waitDrag)
 				.unbind($.events.mouseup, self._stop);
 
+			this.obj.removeClass('ui-draggable');
 			this._trigger('destroy');
 		},
 
-		drop: {
-			
-			/**
-			 * Check if a element has hover or unhover params
-			 * @returns {Boolean}
-			 */
-			hasHover: function(){
-
-				var l = droppableElement.length;
-				if(l<=0) return false;
-
-				for(var i=0; i<l; i++){
-					if(droppableElement[i].params.hoverClass || droppableElement[i].params.out)
-						return true;
-				}
-				return false;
-			},
-			
-			/**
-			 * Unhover drop element
-			 */
-			unHover: function(){
-
-				var l = droppableElement.length;
-				if(l<=0) return false;
-
-				for(var i=0; i<l; i++){
-					droppableElement[i]._out();
-				}
-			},
-			
-			/**
-			 * Update coord of drop element
-			 */
-			update: function(){
-
-				var l = droppableElement.length;
-				if(l<=0) return false;
-
-				for(var i=0; i<l; i++){
-					droppableElement[i]._update();
-				}
-			},
-			
-			hoverDrop: [],
-			
-			/**
-			 * Hover drop element
-			 * @param {Event} e
-			 * @param {Object.<x, y>} mouse
-			 */
-			hover: 	function(e, mouse){
-
-				var l = droppableElement.length;
-				if(l<=0 || !this.drop.hasHover()) return false;
-
-				for(var i=0; i<l; i++){
-					// has hover class or unhover function
-					if(droppableElement[i].params.hoverClass || droppableElement[i].params.out){ 
-						// colision aabb
-						if(mouse.x > droppableElement[i].coord.topLeft.x && 
-						   mouse.x < droppableElement[i].coord.bottomRight.x &&
-						   mouse.y > droppableElement[i].coord.topLeft.y && 
-						   mouse.y < droppableElement[i].coord.bottomRight.y)
-						{
-							if($.inArray(i, this.drop.hoverDrop)==-1){
-								this.drop.hoverDrop.push(i);
-								droppableElement[i]._hover(this.moveObject.get(0));
-							}
-						}
-						else{
-							if($.inArray(i, this.drop.hoverDrop)!=-1){
-								this.drop.hoverDrop.splice($.inArray(i, this.drop.hoverDrop), 1);
-								droppableElement[i]._out(this.moveObject.get(0));
-							}
-						}
-					}
-				}
-			},
-			
-			/**
-			 * Check is dropped
-			 * @param {Event} e
-			 * @param {Object.<x, y>} mouse
-			 * @returns {Boolean}
-			 */
-			check: function(e, mouse){
-
-				var l = droppableElement.length;
-				if(l<=0) return false;
-
-				for(var i=0; i<l; i++){
-					droppableElement[i]._update();
-
-					if(mouse.x > droppableElement[i].coord.topLeft.x && 
-					   mouse.x < droppableElement[i].coord.bottomRight.x &&
-					   mouse.y > droppableElement[i].coord.topLeft.y && 
-					   mouse.y < droppableElement[i].coord.bottomRight.y)
-					{ 
-						return droppableElement[i]._dropped(e, this.moveObject.get(0));
-					}
-				}
-				return false;
-			}
+		/**
+		 * Obtains position in drag
+		 * @returns {Object.<top, left>}
+		 */
+		_getDragPos: function(){
+			if(this.isDrag)
+				return {
+					left: this.coord.translateX+this.coord.left,
+					top: this.coord.translateY+this.coord.top
+				};
+			else
+				return {
+					left: parseInt(this.moveObject.css('left')),
+					top: parseInt(this.moveObject.css('top'))
+				};
 		}
 	};
-
+	
 	/**
 	 * Extend jQuery draggable
 	 * @returns {jQuery|variant} return option or chain jQuery
@@ -672,16 +588,15 @@
 
 			if($(this).data('draggable')){
 				if(aParams == 'destroy'){
-					// TODO: remove in draggableElement
 					$(this).data('draggable')._destroy();
 					$(this).removeData('draggable');
 				}
 				else{
-					data.push($(this).data('draggable')._setOption(params));
+					data.push(_setOption.apply($(this).data('draggable'), [params]));
 				}
 			}
 			else if(!isOption){
-				draggableElement.push(new Drag($(this), first));
+				new Drag($(this), first);
 			}
 		});
 
@@ -692,6 +607,39 @@
 	};
 
 	/**
+	 * Get draggable element - for multitouch
+	 * @returns {Array}
+	 */
+	var _getDraggableElement = function(){
+		var el = [];
+		var temp;
+		
+		$('.ui-draggable').each(function(){
+			temp = $(this).data('draggable');
+			
+			if(temp)
+				el.push(temp);
+		});
+		return el;
+	};
+	
+	/**
+	 * Call private function and return position
+	 * @returns {Object.<top, left>}
+	 */
+	$.fn.getDragPos = function(){
+		var self = $(this).data('draggable');
+		if(self){
+			return self._getDragPos();
+		}
+		return false;
+	};
+	
+	
+	/* ---------------------------------------------- */
+	/* --------------- DROPPABLE -------------------- */
+	
+	/**
 	 * Drop
 	 * @param {jQuery} $o
 	 * @param {Object} aParams
@@ -699,7 +647,7 @@
 	var Drop = function($o, aParams){
 
 		this.obj = $o;
-
+		
 		this.coord = {
 			topLeft: 0,
 			bottomRight: 0
@@ -713,16 +661,13 @@
 			// parameter
 			activeClass: '',				// start with drag
 			hoverClass: '',					// addClass when hover
-			accept: ''						// condition to accept -notwork
+			accept: '',						// condition to accept -notwork
+			disabled: false,				// disabled
+			enable: true					// enable
 		};
 
-		for(var key in this.params){
-			if(aParams[key] && typeof aParams[key] === typeof this.params[key]){
-				this.params[key] = aParams[key];
-			}
-		}
-
-		this.obj 
+		$.extend(this.params, aParams);
+		this._create();
 	};
 
 	Drop.prototype = {
@@ -756,17 +701,22 @@
 
 			this.obj.trigger(event, data);
 
-			if(self.params[type]){
+			if(self.params[type] && typeof self.params[type] === 'function'){
 				return self.params[type].apply(this.obj.get(0), [event, data])===false?false: true;	
 			}
 		},
 
+		_create: function(){
+			this.obj.data('droppable', this);
+			this.obj.addClass('ui-droppable');	
+		},
+		
 		/**
 		 * Trigger hover
 		 * @param {jQuery} el - element hover notUse
 		 */
 		_hover: function(el){
-
+			
 			this.obj.addClass(this.params.hoverClass);
 			this._trigger('hover');
 		},
@@ -778,6 +728,7 @@
 		 * @returns {Boolean}
 		 */
 		_dropped: function(e, el){
+			this._out();
 			return this._trigger('drop', e, {draggable: el});
 		},
 		
@@ -789,7 +740,18 @@
 
 			this.obj.removeClass(this.params.hoverClass);
 			this._trigger('out');
-		}
+		},
+		
+		/**
+		 * Destroy event
+		 */
+		_destroy: function(){
+
+			var self = this;
+			
+			this.obj.removeClass('ui-droppable');
+			this._trigger('destroy');
+		},
 	};
 
 	/**
@@ -797,18 +759,167 @@
 	 * @returns {jQuery} chain jQuery
 	 */	
 	$.fn.droppable = function(aParams){
+		
+		var params = arguments;
+		var first = aParams||{};
+		var data = [];
 
-		var params = typeof aParams === 'object'? aParams: {};
+		var isOption = arguments[0] == 'option' || arguments[0] == 'disable' || arguments[0] == 'enable';
 
-		return this.each(function(){
+		this.each(function(){
 
-			var drop = new Drop($(this), params);
-			droppableElement.push(drop);
-
-			$(this).addClass('ui-droppable');
+			if($(this).data('droppable')){
+				if(aParams == 'destroy'){
+					$(this).data('droppable')._destroy();
+					$(this).removeData('droppable');
+				}
+				else{
+					data.push(_setOption.apply($(this).data('droppable'), [params]));
+				}
+			}
+			else if(!isOption){
+				new Drop($(this), first);
+			}
 		});
+
+		if(data.length>0 && arguments.length == 2)
+			return data;
+
+		return this;
 	};
 
+	
+	var dropManage = {
+		/**
+		 * Check if a element has hover or unhover params
+		 * @returns {Boolean}
+		 */
+		hasHover: function(){
+
+			var droppableElement = _getDroppableElement();
+			var l = droppableElement.length;
+			if(l<=0) return false;
+
+			for(var i=0; i<l; i++){
+				if(droppableElement[i].params.hoverClass || droppableElement[i].params.out)
+					return true;
+			}
+			return false;
+		},
+
+		/**
+		 * Unhover drop element
+		 */
+		unHover: function(){
+
+			var droppableElement = _getDroppableElement();
+			var l = droppableElement.length;
+			if(l<=0) return false;
+
+			for(var i=0; i<l; i++){
+				droppableElement[i]._out();
+			}
+		},
+
+		/**
+		 * Update coord of drop element
+		 */
+		update: function(){
+
+			var droppableElement = _getDroppableElement();
+			var l = droppableElement.length;
+			if(l<=0) return false;
+
+			for(var i=0; i<l; i++){
+				droppableElement[i]._update();
+			}
+		},
+
+		hoverDrop: [],
+
+		/**
+		 * Hover drop element
+		 * @param {Event} e
+		 * @param {Object.<x, y>} mouse
+		 */
+		hover: 	function(e, mouse){
+
+			var droppableElement = _getDroppableElement();
+			var l = droppableElement.length;
+			if(l<=0 || !dropManage.hasHover()) return false;
+
+			for(var i=0; i<l; i++){
+				// has hover class or unhover function
+				if(droppableElement[i].params.hoverClass || droppableElement[i].params.out){ 
+					// colision aabb
+					if(mouse.x > droppableElement[i].coord.topLeft.x && 
+					   mouse.x < droppableElement[i].coord.bottomRight.x &&
+					   mouse.y > droppableElement[i].coord.topLeft.y && 
+					   mouse.y < droppableElement[i].coord.bottomRight.y)
+					{
+						if($.inArray(i, dropManage.hoverDrop)==-1){
+							dropManage.hoverDrop.push(i);
+							droppableElement[i]._hover(this.moveObject.get(0));
+						}
+					}
+					else{
+						if($.inArray(i, dropManage.hoverDrop)!=-1){
+							dropManage.hoverDrop.splice($.inArray(i, dropManage.hoverDrop), 1);
+							droppableElement[i]._out(this.moveObject.get(0));
+						}
+					}
+				}
+			}
+		},
+
+		/**
+		 * Check is dropped
+		 * @param {Event} e
+		 * @param {Object.<x, y>} mouse
+		 * @returns {Boolean}
+		 */
+		check: function(e, mouse){
+
+			var droppableElement = _getDroppableElement();
+			var l = droppableElement.length;
+			if(l<=0) return false;
+			
+			for(var i=0; i<l; i++){
+				droppableElement[i]._update();
+
+				if(mouse.x > droppableElement[i].coord.topLeft.x && 
+				   mouse.x < droppableElement[i].coord.bottomRight.x &&
+				   mouse.y > droppableElement[i].coord.topLeft.y && 
+				   mouse.y < droppableElement[i].coord.bottomRight.y)
+				{
+					return droppableElement[i]._dropped(e, this.moveObject.get(0));
+				}
+			}
+			return false;
+		}
+	};
+
+	/**
+	 * Get droppable element
+	 * @returns {Array}
+	 */
+	var _getDroppableElement = function(){
+		var el = [];
+		var temp;
+		
+		$('.ui-droppable').each(function(){
+			temp = $(this).data('droppable');
+			
+			if(temp && temp.params.enable)
+				el.push(temp);
+		});
+		return el;
+	};
+	
+	
+	/* ---------------------------------------------- */
+	/* ----------------- UTILS ---------------------- */
+	
 	/**
 	 * Pythagore calcul
 	 * @param {Object.<x, y>} start
